@@ -5,6 +5,15 @@ set(CMAKE_CXX_STANDARD 17)
 
 add_executable(reactive-synthesis-bfss find_dependents.cpp variable_dependency.cpp)
 
+
+# Include BDDX package
+# TODO: show error message if BDDX wasn't located
+find_library(bddx_location NAMES libbddx.a)
+message(STATUS "Found bddx location at ${bddx_location}")
+add_library(bddx STATIC IMPORTED)
+set_target_properties(bddx PROPERTIES IMPORTED_LOCATION ${bddx_location})
+target_link_libraries( reactive-synthesis-bfss bddx )
+
 # Include spot package
 # TODO: show error message if spot wasn't located
 find_library(spot_location NAMES libspot.a)
