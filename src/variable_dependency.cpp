@@ -2,6 +2,8 @@
 #include <vector>
 #include <spot/tl/formula.hh>
 #include <spot/tl/parse.hh>
+#include <spot/twaalgos/contains.hh>
+#include <spot/twaalgos/translate.hh>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/join.hpp>
 
@@ -47,7 +49,7 @@ std::string*  equal_to_primes_formula(Variables& vars) {
 }
 
 
-spot::formula* dependency_formula(Specification& spec, Variables& dependency, Variables& dependent) {
+spot::formula* get_dependency_formula(Specification& spec, Variables& dependency, Variables& dependent) {
     if(dependency.empty() || dependent.empty()) {
         throw std::invalid_argument("Dependent and dependency are required to have at least 1 item to check for dependency");
     }
@@ -64,6 +66,7 @@ spot::formula* dependency_formula(Specification& spec, Variables& dependency, Va
     spot::formula dependents_not_equals_formula =  spot::formula::Not(spot::parse_formula(*dependents_equals));
 
     // Dependency formula constructing (Where X is dependent on Y): (f && f' && (Y=Y')U(Y=Y' && X!=X'))
+    // TODO: check if I can replace the Until operator with the M operator
     auto* dependency_formula = new spot::formula(
         spot::formula::And({
             spec_formula,
@@ -83,4 +86,14 @@ spot::formula* dependency_formula(Specification& spec, Variables& dependency, Va
     delete prime_spec;
 
     return dependency_formula;
+}
+
+bool are_variables_dependent(Specification& spec, Variables& dependency, Variables& dependent) {
+    auto* dependency_formula = get_dependency_formula(spec, dependency, dependent);
+    spot::translator trans;
+    spot::twa_graph_ptr automaton = trans.run(dependency_formula);
+    bool is_empty = automaton->is_empty();
+
+    delete dependency_formula;
+    return is_empty;
 }
