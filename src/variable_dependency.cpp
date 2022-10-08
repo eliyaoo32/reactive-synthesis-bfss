@@ -43,18 +43,14 @@ spot::formula* get_dependency_formula(ReactiveSpecification& spec, Variables& de
     spot::formula* dependencies_equals_formula = equal_to_prime_formula(dependency);
     spot::formula* dependents_equals_formula = equal_to_prime_formula(dependent);
 
-    // Dependency formula constructing (Where X is dependent on Y): (f && f' && (Y=Y')U(Y=Y' && X!=X'))
-    // TODO: check if I can replace the Until operator with the M operator
+    // Dependency formula constructing (Where X is dependent on Y): (f & f' & (Y=Y')U(Y=Y' & X!=X')) = (f & f' & (X!=X') M (Y=Y'))
     auto* dependency_formula = new spot::formula(
         spot::formula::And({
             spec.get_formula(),
             prime_spec->get_formula(),
-            spot::formula::U(
-                *dependencies_equals_formula,
-                spot::formula::And({
-                   *dependencies_equals_formula,
-                   spot::formula::Not(*dependents_equals_formula)
-                })
+            spot::formula::M(
+                spot::formula::Not(*dependents_equals_formula),
+                *dependencies_equals_formula
             )
         })
     );
