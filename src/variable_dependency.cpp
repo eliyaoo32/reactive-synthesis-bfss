@@ -37,7 +37,7 @@ std::string*  equal_to_primes_formula(Variables& vars) {
     Variables var_equal_to_prime;
     var_equal_to_prime.resize(vars.size());
     std::transform(vars.begin(), vars.end(), var_equal_to_prime.begin(), [](std::string& var) {
-        return var + " <-> " + get_prime_variable(var);
+        return "(" + var + " <-> " + get_prime_variable(var) + ")";
     });
 
     // Join the equiv formulas by &&
@@ -47,17 +47,40 @@ std::string*  equal_to_primes_formula(Variables& vars) {
 }
 
 
-bool are_dependent(Specification& spec, Variables& dependency, Variables& dependent) {
+spot::formula* dependency_formula(Specification& spec, Variables& dependency, Variables& dependent) {
     if(dependency.empty() || dependent.empty()) {
         throw std::invalid_argument("Dependent and dependency are required to have at least 1 item to check for dependency");
     }
 
+    // Get formulas strings
     Specification* prime_spec = spec.get_prime();
-    std::string* dependency_equals_formula = equal_to_primes_formula(dependency);
+    std::string* dependency_equals = equal_to_primes_formula(dependency);
+    std::string* dependents_equals = equal_to_primes_formula(dependent);
 
+    // Create the formula
     spot::formula spec_formula = spot::parse_formula(*(spec.get_formula()));
     spot::formula spec_prime_formula =  spot::parse_formula(*(prime_spec->get_formula()));
+    spot::formula dependency_equals_formula =  spot::parse_formula(*dependency_equals);
+    spot::formula dependents_not_equals_formula =  spot::formula::Not(spot::parse_formula(*dependents_equals));
 
-    delete dependency_equals_formula;
+    // Dependency formula constructing (Where X is dependent on Y): (f && f' && (Y=Y')U(Y=Y' && X!=X'))
+    auto* dependency_formula = new spot::formula(
+        spot::formula::And({
+            spec_formula,
+            spec_prime_formula,
+            spot::formula::U(
+                dependency_equals_formula,
+                spot::formula::And({
+                    dependency_equals_formula,
+                    dependents_not_equals_formula
+                })
+            )
+        })
+    );
+
+    delete dependency_equals;
+    delete dependents_equals;
     delete prime_spec;
+
+    return dependency_formula;
 }

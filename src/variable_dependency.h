@@ -36,6 +36,6 @@ public:
     Formula* get_formula() { return m_formula; }
 };
 
-bool are_dependent(Specification& spec, Variables& dependency, Variables& dependent);
+spot::formula* dependency_formula(Specification& spec, Variables& dependency, Variables& dependent);
 
 #endif //REACTIVE_SYNTHESIS_BFSS_VARIABLE_DEPENDENCY_H
