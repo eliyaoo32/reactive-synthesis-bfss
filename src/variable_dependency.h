@@ -14,9 +14,9 @@ inline std::string get_prime_variable(std::string &var) {
 
 class Specification {
 private:
-    Formula *m_formula; // In the format of LTL2BA / LTL3BA
-    Variables *m_input_vars;
-    Variables *m_output_vars;
+    Formula* m_formula; // In the format of LTL2BA / LTL3BA
+    Variables* m_input_vars;
+    Variables* m_output_vars;
 public:
     Specification(Formula *formula,
                   Variables *input_vars,
@@ -32,6 +32,10 @@ public:
     }
 
     Specification *get_prime();
+
+    Formula* get_formula() { return m_formula; }
 };
+
+bool are_dependent(Specification& spec, Variables& dependency, Variables& dependent);
 
 #endif //REACTIVE_SYNTHESIS_BFSS_VARIABLE_DEPENDENCY_H
