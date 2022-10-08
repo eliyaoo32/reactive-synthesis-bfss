@@ -3,7 +3,7 @@ project(reactive-synthesis-bfss)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(reactive-synthesis-bfss find_dependencies.cpp variable_dependency.cpp)
+add_executable(reactive-synthesis-bfss find_dependencies.cpp variable_dependency.cpp reactive_specification.cpp)
 
 
 # Include BDDX package

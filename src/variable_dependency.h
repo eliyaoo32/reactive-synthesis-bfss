@@ -1,43 +1,10 @@
 #ifndef REACTIVE_SYNTHESIS_BFSS_VARIABLE_DEPENDENCY_H
 #define REACTIVE_SYNTHESIS_BFSS_VARIABLE_DEPENDENCY_H
 
-#include <string>
-#include <vector>
+#include "reactive_specification.h"
 
-using Variables = std::vector<std::string>;
-using Formula = std::string;
+spot::formula* get_dependency_formula(ReactiveSpecification& spec, Variables& dependency, Variables& dependent);
 
-// We make a prime variable by adding the suffix "_pp" to variable's name
-inline std::string get_prime_variable(std::string &var) {
-    return var + "_pp";
-}
-
-class Specification {
-private:
-    Formula* m_formula; // In the format of LTL2BA / LTL3BA
-    Variables* m_input_vars;
-    Variables* m_output_vars;
-public:
-    Specification(Formula *formula,
-                  Variables *input_vars,
-                  Variables *output_vars) :
-            m_formula(formula),
-            m_input_vars(input_vars),
-            m_output_vars(output_vars) {}
-
-    ~Specification() {
-        delete m_formula;
-        delete m_input_vars;
-        delete m_output_vars;
-    }
-
-    Specification *get_prime();
-
-    Formula* get_formula() { return m_formula; }
-};
-
-spot::formula* get_dependency_formula(Specification& spec, Variables& dependency, Variables& dependent);
-
-bool are_variables_dependent(Specification& spec, Variables& dependency, Variables& dependent);
+bool are_variables_dependent(ReactiveSpecification& spec, Variables& dependency, Variables& dependent);
 
 #endif //REACTIVE_SYNTHESIS_BFSS_VARIABLE_DEPENDENCY_H

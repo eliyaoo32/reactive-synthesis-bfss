@@ -4,96 +4,64 @@
 #include <spot/tl/parse.hh>
 #include <spot/twaalgos/contains.hh>
 #include <spot/twaalgos/translate.hh>
-#include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/join.hpp>
 
 #include "variable_dependency.h"
 
-Specification* Specification::get_prime() {
-    // Create prime vars
-    auto* prime_inputs = new std::vector<std::string>();
-    auto* prime_outputs = new std::vector<std::string>();
-
-    prime_inputs->resize( m_input_vars->size() );
-    prime_outputs->resize( m_output_vars->size() );
-
-    std::transform(m_input_vars->begin(), m_input_vars->end(), prime_inputs->begin(), get_prime_variable);
-    std::transform(m_output_vars->begin(), m_output_vars->end(), prime_outputs->begin(), get_prime_variable);
-
-    // Create prime formula
-    auto* prime_formula = new std::string(*m_formula);
-    for(auto input_var : *m_input_vars) {
-        boost::replace_all(*prime_formula, input_var, get_prime_variable(input_var));
-    }
-    for(auto output_var : *m_output_vars) {
-        boost::replace_all(*prime_formula, output_var, get_prime_variable(output_var));
-    }
-
-    // Create Prime specification
-    auto* prime_spec = new Specification(prime_formula, prime_inputs, prime_outputs);
-    return prime_spec;
-}
-
-std::string*  equal_to_primes_formula(Variables& vars) {
-    // Create a list of formulas: X <-> X_pp
+spot::formula* equal_to_prime_formula(Variables& vars) {
     Variables var_equal_to_prime;
     var_equal_to_prime.resize(vars.size());
     std::transform(vars.begin(), vars.end(), var_equal_to_prime.begin(), [](std::string& var) {
         return "(" + var + " <-> " + get_prime_variable(var) + ")";
     });
 
-    // Join the equiv formulas by &&
-    auto* equal_formula = new std::string(boost::algorithm::join(var_equal_to_prime, " && "));
+    std::string equal_to_prime_str = boost::algorithm::join(var_equal_to_prime, " && ");
+    auto* equal_to_prime_formula = new spot::formula(spot::parse_formula(equal_to_prime_str));
 
-    return equal_formula;
+    return equal_to_prime_formula;
 }
 
+bool are_variables_dependent(ReactiveSpecification& spec, Variables& dependency, Variables& dependent) {
+    spot::translator trans;
+    auto* dependency_formula = get_dependency_formula(spec, dependency, dependent);
 
-spot::formula* get_dependency_formula(Specification& spec, Variables& dependency, Variables& dependent) {
+    spot::twa_graph_ptr automaton = trans.run(dependency_formula);
+    bool is_empty = automaton->is_empty();
+
+    delete dependency_formula;
+
+    return is_empty;
+}
+
+spot::formula* get_dependency_formula(ReactiveSpecification& spec, Variables& dependency, Variables& dependent) {
     if(dependency.empty() || dependent.empty()) {
         throw std::invalid_argument("Dependent and dependency are required to have at least 1 item to check for dependency");
     }
 
     // Get formulas strings
-    Specification* prime_spec = spec.get_prime();
-    std::string* dependency_equals = equal_to_primes_formula(dependency);
-    std::string* dependents_equals = equal_to_primes_formula(dependent);
-
-    // Create the formula
-    spot::formula spec_formula = spot::parse_formula(*(spec.get_formula()));
-    spot::formula spec_prime_formula =  spot::parse_formula(*(prime_spec->get_formula()));
-    spot::formula dependency_equals_formula =  spot::parse_formula(*dependency_equals);
-    spot::formula dependents_not_equals_formula =  spot::formula::Not(spot::parse_formula(*dependents_equals));
+    ReactiveSpecification* prime_spec = spec.get_prime();
+    spot::formula* dependencies_equals_formula = equal_to_prime_formula(dependency);
+    spot::formula* dependents_equals_formula = equal_to_prime_formula(dependent);
 
     // Dependency formula constructing (Where X is dependent on Y): (f && f' && (Y=Y')U(Y=Y' && X!=X'))
     // TODO: check if I can replace the Until operator with the M operator
     auto* dependency_formula = new spot::formula(
         spot::formula::And({
-            spec_formula,
-            spec_prime_formula,
+            spec.get_formula(),
+            prime_spec->get_formula(),
             spot::formula::U(
-                dependency_equals_formula,
+                *dependencies_equals_formula,
                 spot::formula::And({
-                    dependency_equals_formula,
-                    dependents_not_equals_formula
+                   *dependencies_equals_formula,
+                   spot::formula::Not(*dependents_equals_formula)
                 })
             )
         })
     );
 
-    delete dependency_equals;
-    delete dependents_equals;
+    delete dependencies_equals_formula;
+    delete dependents_equals_formula;
     delete prime_spec;
 
     return dependency_formula;
-}
-
-bool are_variables_dependent(Specification& spec, Variables& dependency, Variables& dependent) {
-    auto* dependency_formula = get_dependency_formula(spec, dependency, dependent);
-    spot::translator trans;
-    spot::twa_graph_ptr automaton = trans.run(dependency_formula);
-    bool is_empty = automaton->is_empty();
-
-    delete dependency_formula;
-    return is_empty;
 }
