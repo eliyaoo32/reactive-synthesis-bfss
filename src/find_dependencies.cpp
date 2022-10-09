@@ -2,12 +2,18 @@
 #include <boost/algorithm/string.hpp>
 #include <spot/twaalgos/contains.hh>
 
-
 #include "reactive_specification.h"
 #include "variable_dependency.h"
 #include "find_dependencies.h"
 
 using namespace std;
+
+static BenchmarkMetrics benchmark_metrics;
+
+void on_sighup() {
+    std::cout << benchmark_metrics << endl;
+    exit(EXIT_SUCCESS);
+}
 
 int main(int argc, char** argv) {
     // Extract arguments
@@ -15,22 +21,21 @@ int main(int argc, char** argv) {
     string formula;
     extract_arguments(argc, argv, formula, input_vars, output_vars);
 
-    // All the LTL variables, with the order: input_vars, output_vars
+    // Init data for searching dependencies
+    ReactiveSpecification spec = ReactiveSpecification(formula, input_vars, output_vars);
     Variables all_variables;
     all_variables.insert(all_variables.begin(), output_vars.begin(), output_vars.end());
     all_variables.insert(all_variables.begin(), input_vars.begin(), input_vars.end());
 
-    // Check for dependency
-    BenchmarkMetrics metrics;
-    ReactiveSpecification spec = ReactiveSpecification(formula, input_vars, output_vars);
-    search_for_dependencies(std::cout, metrics, spec, all_variables);
+    signal(SIGHUP, on_sighup);
+
+    search_for_dependencies(std::cout, benchmark_metrics, spec, all_variables);
 
     // Output results
-    cout << metrics;
+    cout << benchmark_metrics;
 
     return EXIT_SUCCESS;
 }
-
 
 ostream& operator<<(ostream& out, BenchmarkMetrics& benchmarkMetrics) {
     benchmarkMetrics.summary(out);

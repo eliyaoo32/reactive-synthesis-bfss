@@ -1,4 +1,4 @@
-# BFSS - React Synthesis 
+# BFSS - Reactive Synthesis 
 
 ## Preliminaries
 * The benchmarks from [SYNTCOMP](https://github.com/SYNTCOMP/benchmarks/tree/master), we use the [TLSF format](https://arxiv.org/pdf/1604.02284.pdf).
@@ -34,17 +34,26 @@ find_dependencies [LTL_FORMULA] [INPUT_VARS] [OUTPUT_VARS]
 ```
 Where `[LTL_FORMULA]` is `LTL3BA`,  the variables `[INPUT_VARS] [OUTPUT_VARS]` are comma-seperated.
 
-Example:
+**Example:**
 
 `find_dependencies "G(i_1 <-> (o_1)) & G(o_2)" "i_1" "o_1,o_2"`
 
+**Notes:**
+* This tool has no timeout.
+* When the process gets the `SIGHUP`, it prints the metrics that was gather until the signal. 
 
 ### Tool: Find Dependency in TLSF files
 The tool used to find dependency in TLSF file is [tlsf_dependecies](tools/tlsf_dependecies).
 The usage is:
 ```
-tlsf_dependecies [TLSF_PATH] [FIND_DEPENDECIES_PATH]
+tlsf_dependecies [TLSF_PATH] [FIND_DEPENDECIES_PATH] [TIMEOUT]
 ```
+
+**Notes:**
+* Timeout is implemented via the [timout command](https://man7.org/linux/man-pages/man1/timeout.1.html).
+* Timeout default value is 40 minutes.
+* Timeout is a floating point number with an optional suffix: 's' for seconds (the default), 'm' for minutes, 'h' for hours or 'd' for days. 
+* Timeout of 0 disables the associated timeout.
 
 ### Metrics
 - [x] Can spot construct the automaton of the benchmark? If yes, how long it took?
