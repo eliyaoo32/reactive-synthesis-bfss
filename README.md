@@ -25,12 +25,14 @@ while Unk is not empty:
         Dependents.add(z)
     else:
         Dependencies.add(z)
+
+// the Dependents set is dependent on the set Dependencies
 ```
 
 ### Metrics
-- [x] Could spot construct the automaton of the benchmark? If yes, how long it took?
+- [x] Can spot construct the automaton of the benchmark? If yes, how long it took?
 - [x] Did any dependent variable was found? If yes, which one.
 - [x] Which variables was checked?
 - [x] How long it took for each variable to check if it's dependent.
 - [x] Total duration of the process
-- [x] Was the process finished on time, or it had a timeout?
+- [x] Was the process finished on time, or it had a timeout? In case of timeout, at what variable checking was stopped.
