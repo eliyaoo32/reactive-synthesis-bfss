@@ -1,27 +1,47 @@
 #include <iostream>
+#include <boost/algorithm/string.hpp>
 
 #include "reactive_specification.h"
 #include "variable_dependency.h"
 
 using namespace std;
 
-int main() {
-    // lilydemo01
-//    std::string formula = "G (req -> X (grant && X (grant && X grant)) && (grant -> X (! grant)) && (cancel -> X (! grant U go)))";
-//    Variables input_vars = {"go", "cancel", "req"};
-//    Variables output_vars = {"grant"};
-//    Variables dependency = {"go", "cancel"};
-//    Variables dependent = {"grant"};
+void extract_arguments(int argc, char** argv, string& formula, Variables& input_vars, Variables& output_vars) {
+    if(argc != 4) {
+        std::cerr << "Usage: find_dependencies <ltl_formula> <input_vars> <output_vars>" << endl;
+        std::cerr << "The <input_vars> <output_vars> are seperated by comma (,). For example: x_0,x_1,y_3" << endl;
+        exit(EXIT_FAILURE);
+    }
 
-    // tsl_paper/button
-    std::string formula = "G (! (u0count0count && ! u0count0f1dincrement0count1b <-> (u0count0f1dincrement0count1b && ! u0count0count)) && ! (u0pic0pic && ! u0pic0f1drender2button0count1b <-> (u0pic0f1drender2button0count1b && ! u0pic0pic))) && G (p0p0event0click <-> u0count0f1dincrement0count1b) && G u0pic0f1drender2button0count1b";
-    Variables input_vars = {"p0p0event0click"};
-    Variables output_vars = {"u0pic0f1drender2button0count1b", "u0pic0pic", "u0count0f1dincrement0count1b", "u0count0count"};
-    Variables dependency = {"u0pic0pic", "u0count0f1dincrement0count1b", "u0count0count", "p0p0event0click"};
-    Variables dependent = {"u0pic0f1drender2button0count1b"};
+    formula = argv[1];
+    string x1 = argv[2];
+    string x2 = argv[3];
+    boost::split(input_vars, argv[2], boost::is_any_of(","));
+    boost::split(output_vars, argv[3], boost::is_any_of(","));
 
+    if(input_vars.empty()) {
+        std::cerr << "Error: Input variables are missing" << endl;
+        exit(EXIT_FAILURE);
+    }
+    if(output_vars.empty()) {
+        std::cerr << "Error: Output variables are missing" << endl;
+        exit(EXIT_FAILURE);
+    }
+}
+
+int main(int argc, char** argv) {
+    // Extract arguments
+    Variables input_vars, output_vars;
+    string formula;
+    extract_arguments(argc, argv, formula, input_vars, output_vars);
+
+    // Check for dependency
+    Variables dependency = { input_vars[0] };
+    Variables dependent = { output_vars[0] };
     ReactiveSpecification spec = ReactiveSpecification(formula, input_vars, output_vars);
     cout << std::boolalpha << are_variables_dependent(spec, dependency, dependent) << endl;
 
-    return 0;
+    return EXIT_SUCCESS;
 }
+
+
