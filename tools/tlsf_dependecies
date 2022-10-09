@@ -1,0 +1,14 @@
+#!/bin/bash
+
+if ! [ -x "$(command -v syfco)" ]; then
+  echo 'Error: syfco is not installed or not in PATH.' >&2
+  exit 1
+fi
+
+TLSF_PATH=$1
+FIND_DEPENDENCIES_PATH=$2
+FORMULA=$(syfco $TLSF_PATH -f ltlxba)
+INPUTS=$(syfco $TLSF_PATH -ins | awk '{ gsub(/ /,""); print }') # Omit spaces
+OUTPUTS=$(syfco $TLSF_PATH -outs | awk '{ gsub(/ /,""); print }')
+
+${FIND_DEPENDENCIES_PATH} "${FORMULA}" "${INPUTS}" "${OUTPUTS}"

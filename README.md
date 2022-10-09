@@ -9,8 +9,6 @@
 * For each AP in the benchmark, we check if it's dependent on all other variables.
   * If variables are dependent on a subset then they depend on the set itself.
 * For each benchmark we limit the execution time to 40 minutes.
-* The CLI tool to search for dependent variables in a benchmark is implemented in the file [find_dependencies.cpp](src/find_dependencies.cpp).
-
 
 * _Optional:_ we can keep search for all dependent variables with the following algorithm,
 where `d` is the found dependent variable and `Variables` is the set of all the variables.
@@ -28,6 +26,20 @@ while Unk is not empty:
 
 // the Dependents set is dependent on the set Dependencies
 ```
+
+### Tool: Find Dependency
+The tool to find dependencies in a LTL formula is [find_dependencies](src/find_dependencies.cpp).
+The usage is `find_dependencies [LTL_FORMULA] [INPUT_VARS] [OUTPUT_VARS]`.
+Where `[LTL_FORMULA]` is `LTL3BA`,  the variables `[INPUT_VARS] [OUTPUT_VARS]` are comma-seperated.
+
+Example:
+
+`find_dependencies "G(i_1 <-> (o_1)) & G(o_2)" "i_1" "o_1,o_2"`
+
+
+### Tool: Find Dependency in TLSF files
+The tool used to find dependency in TLSF file is [tlsf_dependecies](tools/tlsf_dependecies).
+The usage is `tlsf_dependecies [TLSF_PATH] [FIND_DEPENDECIES_PATH]`.
 
 ### Metrics
 - [x] Can spot construct the automaton of the benchmark? If yes, how long it took?
