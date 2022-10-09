@@ -1,5 +1,7 @@
 #include <iostream>
 #include <boost/algorithm/string.hpp>
+#include <spot/twaalgos/contains.hh>
+
 
 #include "reactive_specification.h"
 #include "variable_dependency.h"
@@ -56,7 +58,7 @@ void extract_arguments(int argc, char** argv, string& formula, Variables& input_
 
 void search_for_dependencies(ostream& out, BenchmarkMetrics& metrics, ReactiveSpecification& spec, Variables& all_variables) {
     metrics.start_spec_construction();
-    // TODO: construct spec in spec
+    spot::twa_graph_ptr formula_automata = construct_formula(spec.get_formula());
     metrics.end_spec_construction();
 
     for (string& var : all_variables) {

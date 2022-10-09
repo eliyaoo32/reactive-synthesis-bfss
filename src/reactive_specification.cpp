@@ -1,4 +1,7 @@
 #include <boost/algorithm/string/replace.hpp>
+#include <spot/tl/formula.hh>
+#include <spot/twaalgos/contains.hh>
+#include <spot/twaalgos/translate.hh>
 
 #include "reactive_specification.h"
 
@@ -24,4 +27,11 @@ ReactiveSpecification* ReactiveSpecification::get_prime() {
     // Create prime specification
     auto* prime_spec = new ReactiveSpecification(prime_formula, prime_inputs, prime_outputs);
     return prime_spec;
+}
+
+spot::twa_graph_ptr construct_formula(const spot::formula& formula) {
+    spot::translator trans;
+    spot::twa_graph_ptr automaton = trans.run(formula);
+
+    return automaton;
 }

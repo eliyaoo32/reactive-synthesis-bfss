@@ -13,6 +13,8 @@ inline std::string get_prime_variable(std::string &var) {
     return var + "_pp";
 }
 
+spot::twa_graph_ptr construct_formula(const spot::formula& formula);
+
 class ReactiveSpecification {
 private:
     spot::formula m_formula; // In the format of LTL2BA / LTL3BA
