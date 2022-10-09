@@ -1,8 +1,7 @@
 # BFSS - React Synthesis 
 
 ## Preliminaries
-* We use benchmarks from [SYNTCOMP](https://github.com/SYNTCOMP/benchmarks/tree/master).
-* The benchmarks are in [TLSF format](https://arxiv.org/pdf/1604.02284.pdf).
+* The benchmarks from [SYNTCOMP](https://github.com/SYNTCOMP/benchmarks/tree/master), we use the [TLSF format](https://arxiv.org/pdf/1604.02284.pdf).
 * The benchmarks are converted to the `LTL3BA` (a format of LTL formulas) via [SYFCO](https://github.com/reactive-systems/syfco).
 * The platform for LTL and ω-automata manipulation is [Spot](https://spot.lrde.epita.fr/).
 
