@@ -3,31 +3,9 @@
 
 #include "reactive_specification.h"
 #include "variable_dependency.h"
+#include "find_dependencies.h"
 
 using namespace std;
-
-void extract_arguments(int argc, char** argv, string& formula, Variables& input_vars, Variables& output_vars) {
-    if(argc != 4) {
-        std::cerr << "Usage: find_dependencies <ltl_formula> <input_vars> <output_vars>" << endl;
-        std::cerr << "The <input_vars> <output_vars> are seperated by comma (,). For example: x_0,x_1,y_3" << endl;
-        exit(EXIT_FAILURE);
-    }
-
-    formula = argv[1];
-    string x1 = argv[2];
-    string x2 = argv[3];
-    boost::split(input_vars, argv[2], boost::is_any_of(","));
-    boost::split(output_vars, argv[3], boost::is_any_of(","));
-
-    if(input_vars.empty()) {
-        std::cerr << "Error: Input variables are missing" << endl;
-        exit(EXIT_FAILURE);
-    }
-    if(output_vars.empty()) {
-        std::cerr << "Error: Output variables are missing" << endl;
-        exit(EXIT_FAILURE);
-    }
-}
 
 int main(int argc, char** argv) {
     // Extract arguments
@@ -44,4 +22,29 @@ int main(int argc, char** argv) {
     return EXIT_SUCCESS;
 }
 
+void extract_arguments(int argc, char** argv, string& formula, Variables& input_vars, Variables& output_vars) {
+    if(argc != 4) {
+        std::cerr << "Usage: find_dependencies <ltl_formula> <input_vars> <output_vars>" << endl;
+        std::cerr << "The <input_vars> <output_vars> are seperated by comma (,). For example: x_0,x_1,y_3" << endl;
+        exit(EXIT_FAILURE);
+    }
 
+    formula = argv[1];
+    boost::split(input_vars, argv[2], boost::is_any_of(","));
+    boost::split(output_vars, argv[3], boost::is_any_of(","));
+
+    if(input_vars.empty()) {
+        std::cerr << "Error: Input variables are missing" << endl;
+        exit(EXIT_FAILURE);
+    }
+    if(output_vars.empty()) {
+        std::cerr << "Error: Output variables are missing" << endl;
+        exit(EXIT_FAILURE);
+    }
+}
+
+ostream& operator<<(ostream& out, BenchmarkMetrics& benchmarkMetrics) {
+    out << "To print this bench mark" << endl;
+
+    return out;
+}
