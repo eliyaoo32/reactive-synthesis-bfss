@@ -15,7 +15,7 @@ spot::formula* equal_to_prime_formula(Variables& vars) {
         return "(" + var + " <-> " + get_prime_variable(var) + ")";
     });
 
-    std::string equal_to_prime_str = boost::algorithm::join(var_equal_to_prime, " && ");
+    std::string equal_to_prime_str = boost::algorithm::join(var_equal_to_prime, " & ");
     auto* equal_to_prime_formula = new spot::formula(spot::parse_formula(equal_to_prime_str));
 
     return equal_to_prime_formula;
