@@ -10,6 +10,7 @@
 * For each AP in the benchmark, we check if it's dependent on all other variables.
   * If variables are dependent on a subset then they depend on the set itself.
 * For each benchmark we limit the execution time to 40 minutes.
+* The CLI tool to search for dependent variables in a benchmark is implemented in the file [find_dependencies.cpp](src/find_dependencies.cpp).
 
 
 * _Optional:_ we can keep search for all dependent variables with the following algorithm,
@@ -21,7 +22,7 @@ Dependencies = { }      /* Set of all the dependencies */
 
 while Unk is not empty:
      z = Unk.pop()      /* Pop variable by some heuristc */
-     if z dependent on Unk + Dependencies:
+     if z is dependent on (Unk ∪ Dependencies):
         Dependents.add(z)
     else:
         Dependencies.add(z)
