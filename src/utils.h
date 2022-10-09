@@ -7,11 +7,12 @@
 using namespace std::chrono;
 
 using TimePoint = std::chrono::time_point<std::chrono::high_resolution_clock>;
+using Duration = long;
 
 class TimeMeasure {
 private:
     TimePoint m_start_time;
-    int m_duration;
+    Duration m_duration;
 public:
     TimeMeasure() : m_duration(TIME_MEASURE_DEFAULT_DURATION) {}
 
@@ -19,14 +20,14 @@ public:
         m_start_time = high_resolution_clock::now();
     }
 
-    int end() {
+    Duration end() {
         TimePoint end = high_resolution_clock::now();
-        m_duration = static_cast<int>(duration_cast<milliseconds>(end - m_start_time).count());
+        m_duration = static_cast<Duration>(duration_cast<milliseconds>(end - m_start_time).count());
 
         return m_duration;
     }
 
-    int get_duration() {
+    Duration get_duration() {
         if(m_duration == TIME_MEASURE_DEFAULT_DURATION) {
             this->end();
         }

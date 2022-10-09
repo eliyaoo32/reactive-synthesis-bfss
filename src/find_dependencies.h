@@ -12,7 +12,7 @@ void extract_arguments(int argc, char** argv, std::string& formula, Variables& i
 
 struct TestedVariable {
     std::string variable_name;
-    int duration;
+    long duration;
 };
 
 class BenchmarkMetrics {
@@ -54,7 +54,7 @@ public:
     }
 
     void done_testing_variable() {
-        int duration = m_current_testing_var_measure->end();
+        long duration = m_current_testing_var_measure->end();
         m_tested_variables.push_back({ m_current_testing_var, duration });
 
         delete m_current_testing_var_measure;
