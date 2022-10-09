@@ -4,54 +4,73 @@
 #include <iostream>
 #include <string>
 #include "reactive_specification.h"
+#include "utils.h"
 
 void extract_arguments(int argc, char** argv, std::string& formula, Variables& input_vars, Variables& output_vars);
 
-struct CheckedVariable {
+struct TestedVariable {
     std::string variable_name;
     int duration;
 };
 
 class BenchmarkMetrics {
 private:
-    bool m_is_spot_constructed;
-    int m_spot_construction_duration;
-    bool m_is_completed;
-    int m_total_duration;
+    // Spec construction data
+    bool m_is_spec_constructed;
+    TimeMeasure m_spec_constructed_measure;
+
+    // Variables results
     Variables m_dependent_variables;
-    std::vector<CheckedVariable> m_checked_variables;
-    std::string m_current_testing_variable;
+    std::vector<TestedVariable> m_tested_variables;
+
+    // Current variable tested
+    TimeMeasure* m_current_testing_var_measure;
+    std::string m_current_testing_var;
+
+    // Complete process
+    bool m_is_completed;
+    TimeMeasure m_total_measure;
 public:
-    BenchmarkMetrics() :
-            m_is_spot_constructed(false),
-            m_spot_construction_duration(-1),
-            m_is_completed(false),
-            m_current_testing_variable(""),
-            m_total_duration(-1) {}
-
-    void add_dependent(std::string var) {
-        m_dependent_variables.push_back(var);
+    BenchmarkMetrics() : m_is_spec_constructed(false), m_current_testing_var(""), m_is_completed(false) {
+        m_total_measure.start();
     }
 
-    void add_checked_var(std::string var, int duration) {
-        m_checked_variables.push_back({ var, duration });
+    void start_spec_construction() {
+        m_spec_constructed_measure.start();
     }
 
-    void constructed_by_spot(int duration) {
-        m_is_spot_constructed = true;
-        m_spot_construction_duration = duration;
+    void end_spec_construction() {
+        m_spec_constructed_measure.end();
+        m_is_spec_constructed = true;
     }
 
-    void finish(bool is_completed, int total_duration) {
-        m_is_completed = is_completed;
-        m_total_duration = total_duration;
+    void start_testing_variable(std::string& var) {
+        m_current_testing_var = var;
+
+        m_current_testing_var_measure = new TimeMeasure();
+        m_current_testing_var_measure->start();
     }
 
-    void set_current_testing_variable(std::string var) {
-        m_current_testing_variable = var;
+    void done_testing_variable() {
+        int duration = m_current_testing_var_measure->end();
+        m_tested_variables.push_back({ m_current_testing_var, duration });
+
+        delete m_current_testing_var_measure;
+        m_current_testing_var = "";
+    }
+
+    void add_dependent(std::string& var) {
+        m_dependent_variables.push_back(std::string(var));
+    }
+
+    void complete() {
+        m_is_completed = true;
+        m_total_measure.end();
     }
 };
 
 std::ostream& operator<<(std::ostream& out, BenchmarkMetrics& benchmarkMetrics);
+
+void search_for_dependencies(std::ostream& out, BenchmarkMetrics& metrics, ReactiveSpecification& spec, Variables& all_variables);
 
 #endif //REACTIVE_SYNTHESIS_BFSS_FIND_DEPENDENCIES_H
