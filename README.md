@@ -28,8 +28,10 @@ while Unk is not empty:
 ```
 
 ### Tool: Find Dependency
-The tool to find dependencies in a LTL formula is [find_dependencies](src/find_dependencies.cpp).
-The usage is `find_dependencies [LTL_FORMULA] [INPUT_VARS] [OUTPUT_VARS]`.
+The tool to find dependencies in a LTL formula is [find_dependencies](src/find_dependencies.cpp). The usage is:
+```
+find_dependencies [LTL_FORMULA] [INPUT_VARS] [OUTPUT_VARS]
+```
 Where `[LTL_FORMULA]` is `LTL3BA`,  the variables `[INPUT_VARS] [OUTPUT_VARS]` are comma-seperated.
 
 Example:
@@ -39,7 +41,10 @@ Example:
 
 ### Tool: Find Dependency in TLSF files
 The tool used to find dependency in TLSF file is [tlsf_dependecies](tools/tlsf_dependecies).
-The usage is `tlsf_dependecies [TLSF_PATH] [FIND_DEPENDECIES_PATH]`.
+The usage is:
+```
+tlsf_dependecies [TLSF_PATH] [FIND_DEPENDECIES_PATH]
+```
 
 ### Metrics
 - [x] Can spot construct the automaton of the benchmark? If yes, how long it took?
