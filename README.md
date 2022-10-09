@@ -50,7 +50,6 @@ tlsf_dependecies [TLSF_PATH] [FIND_DEPENDECIES_PATH] [TIMEOUT]
 ```
 
 **Notes:**
-* Timeout is implemented via the [timout command](https://man7.org/linux/man-pages/man1/timeout.1.html).
 * Timeout default value is 40 minutes.
 * Timeout is a floating point number with an optional suffix: 's' for seconds (the default), 'm' for minutes, 'h' for hours or 'd' for days. 
 * Timeout of 0 disables the associated timeout.
