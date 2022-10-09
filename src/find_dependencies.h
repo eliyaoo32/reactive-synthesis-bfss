@@ -3,6 +3,8 @@
 
 #include <iostream>
 #include <string>
+#include <boost/algorithm/string/join.hpp>
+
 #include "reactive_specification.h"
 #include "utils.h"
 
@@ -66,6 +68,23 @@ public:
     void complete() {
         m_is_completed = true;
         m_total_measure.end();
+    }
+
+    void summary(std::ostream& out) {
+        out << std::boolalpha;
+
+        out << "Is completed successfully: \t" << m_is_completed << std::endl;
+        out << "Total Duration: \t" << m_total_measure << std::endl;
+
+        out << "Was spec constructed: \t " << m_is_spec_constructed << std::endl;
+        out << "Spec construction duration: \t " << m_spec_constructed_measure << std::endl;
+
+        out << "Dependent Variables: \t" << boost::algorithm::join(m_dependent_variables, ", ") << std::endl;
+        out << "Tested Variables: " << std::endl;
+
+        for(auto& tested_var : m_tested_variables) {
+            out << "\t - Variable: " << tested_var.variable_name << "\t Duration: " << tested_var.duration << " ms" << std::endl;
+        }
     }
 };
 

@@ -35,4 +35,9 @@ public:
     }
 };
 
+std::ostream& operator<<(std::ostream& out, TimeMeasure& timeMeasure) {
+    out << timeMeasure.get_duration() << " ms";
+    return out;
+}
+
 #endif //REACTIVE_SYNTHESIS_BFSS_UTILS_H

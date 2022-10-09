@@ -25,13 +25,15 @@ int main(int argc, char** argv) {
     ReactiveSpecification spec = ReactiveSpecification(formula, input_vars, output_vars);
     search_for_dependencies(std::cout, metrics, spec, all_variables);
 
+    // Output results
+    cout << metrics;
+
     return EXIT_SUCCESS;
 }
 
 
 ostream& operator<<(ostream& out, BenchmarkMetrics& benchmarkMetrics) {
-    out << "To print this bench mark" << endl;
-
+    benchmarkMetrics.summary(out);
     return out;
 }
 
