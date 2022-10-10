@@ -10,7 +10,7 @@ using namespace std;
 
 static BenchmarkMetrics benchmark_metrics;
 
-void on_sighup() {
+void on_sighup(int args) {
     std::cout << benchmark_metrics << endl;
     exit(EXIT_SUCCESS);
 }
