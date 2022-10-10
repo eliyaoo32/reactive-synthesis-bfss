@@ -27,3 +27,5 @@ std::ostream& operator<<(std::ostream& out, const std::vector<std::string>& vec_
     out << boost::algorithm::join(vec_str, ", ");
     return out;
 }
+
+std::ostream null_ostream(nullptr);

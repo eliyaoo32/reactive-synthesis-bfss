@@ -33,6 +33,7 @@ The tool to find dependencies in a LTL formula is [find_dependencies](src/find_d
 find_dependencies [LTL_FORMULA] [INPUT_VARS] [OUTPUT_VARS]
 ```
 Where `[LTL_FORMULA]` is `LTL3BA`,  the variables `[INPUT_VARS] [OUTPUT_VARS]` are comma-seperated.
+The flag `--verbose` can be attached to follow the process in real-time.
 
 **Example:**
 

@@ -30,4 +30,6 @@ std::ostream& operator<<(std::ostream& out, TimeMeasure& timeMeasure);
 
 std::ostream& operator<<(std::ostream& out, const std::vector<std::string>& vec_str);
 
+extern std::ostream null_ostream;
+
 #endif //REACTIVE_SYNTHESIS_BFSS_UTILS_H

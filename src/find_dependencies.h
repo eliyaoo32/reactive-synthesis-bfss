@@ -90,6 +90,6 @@ public:
 
 std::ostream& operator<<(std::ostream& out, BenchmarkMetrics& benchmarkMetrics);
 
-void search_for_dependencies(std::ostream& out, BenchmarkMetrics& metrics, ReactiveSpecification& spec, Variables& all_variables);
+void search_for_dependencies(std::ostream* out, BenchmarkMetrics& metrics, ReactiveSpecification& spec, Variables& all_variables);
 
 #endif //REACTIVE_SYNTHESIS_BFSS_FIND_DEPENDENCIES_H

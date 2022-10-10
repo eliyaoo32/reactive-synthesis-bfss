@@ -10,7 +10,7 @@
 using namespace std;
 
 static BenchmarkMetrics benchmark_metrics;
-static ostream& verbose = std::cout;
+static ostream* verbose = &null_ostream;
 static ostream& result_out = std::cout;
 
 void on_sighup(int args) {
@@ -30,8 +30,8 @@ int main(int argc, char** argv) {
     all_variables.insert(all_variables.begin(), output_vars.begin(), output_vars.end());
     all_variables.insert(all_variables.begin(), input_vars.begin(), input_vars.end());
 
-    verbose << "=> Extracted The Specification from arguments." << endl;
-    verbose << spec << "All Variables: " << all_variables << endl;
+    *verbose << "=> Extracted The Specification from arguments." << endl;
+    *verbose << spec << "All Variables: " << all_variables << endl;
 
     signal(SIGHUP, on_sighup);
 
@@ -49,10 +49,14 @@ ostream& operator<<(ostream& out, BenchmarkMetrics& benchmarkMetrics) {
 }
 
 void extract_arguments(int argc, char** argv, string& formula, Variables& input_vars, Variables& output_vars) {
-    if(argc != 4) {
-        std::cerr << "Usage: find_dependencies <ltl_formula> <input_vars> <output_vars>" << endl;
+    if(argc < 4) {
+        std::cerr << "Usage: find_dependencies <ltl_formula> <input_vars> <output_vars> <verbose_level>" << endl;
         std::cerr << "The <input_vars> <output_vars> are seperated by comma (,). For example: x_0,x_1,y_3" << endl;
+        std::cerr << "" << endl;
         exit(EXIT_FAILURE);
+    }
+    if(argc >= 5 && strcmp(argv[4], "--verbose") == 0) {
+        verbose = &std::cout;
     }
 
     formula = argv[1];
@@ -69,7 +73,8 @@ void extract_arguments(int argc, char** argv, string& formula, Variables& input_
     }
 }
 
-void search_for_dependencies(ostream& out, BenchmarkMetrics& metrics, ReactiveSpecification& spec, Variables& all_variables) {
+void search_for_dependencies(ostream* out_stream, BenchmarkMetrics& metrics, ReactiveSpecification& spec, Variables& all_variables) {
+    ostream& out = *out_stream;
     out << "=> Start constructing TWA of the spec" << endl;
 
     metrics.start_spec_construction();
