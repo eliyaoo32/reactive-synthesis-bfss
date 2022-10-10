@@ -129,3 +129,4 @@ fabric.properties
 
 ###################################################### Others
 .DS_Store
+tools/outputs/**
