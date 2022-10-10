@@ -27,6 +27,14 @@ while Unk is not empty:
 // the Dependents set is dependent on the set Dependencies
 ```
 
+### Metrics
+- [x] Can spot construct the automaton of the benchmark? If yes, how long it took?
+- [x] Did any dependent variable was found? If yes, which one.
+- [x] Which variables was checked?
+- [x] How long it took for each variable to check if it's dependent.
+- [x] Total duration of the process
+- [x] Was the process finished on time, or it had a timeout? In case of timeout, at what variable checking was stopped.
+
 ### Tool: Find Dependency
 The tool to find dependencies in a LTL formula is [find_dependencies](src/find_dependencies.cpp). The usage is:
 ```
@@ -55,10 +63,6 @@ tlsf_dependecies [TLSF_PATH] [FIND_DEPENDECIES_PATH] [TIMEOUT]
 * Timeout is a floating point number with an optional suffix: 's' for seconds (the default), 'm' for minutes, 'h' for hours or 'd' for days. 
 * Timeout of 0 disables the associated timeout.
 
-### Metrics
-- [x] Can spot construct the automaton of the benchmark? If yes, how long it took?
-- [x] Did any dependent variable was found? If yes, which one.
-- [x] Which variables was checked?
-- [x] How long it took for each variable to check if it's dependent.
-- [x] Total duration of the process
-- [x] Was the process finished on time, or it had a timeout? In case of timeout, at what variable checking was stopped.
+
+### Tool: Dependencies Lookup
+Search for dependencies variables in all benchmark files. (TBD: More information soon).
