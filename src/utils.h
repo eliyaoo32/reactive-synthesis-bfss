@@ -4,6 +4,7 @@
 #define TIME_MEASURE_DEFAULT_DURATION (-1)
 
 #include <chrono>
+#include <vector>
 using namespace std::chrono;
 
 using TimePoint = std::chrono::time_point<std::chrono::high_resolution_clock>;
@@ -20,25 +21,13 @@ public:
         m_start_time = high_resolution_clock::now();
     }
 
-    Duration end() {
-        TimePoint end = high_resolution_clock::now();
-        m_duration = static_cast<Duration>(duration_cast<milliseconds>(end - m_start_time).count());
+    Duration end();
 
-        return m_duration;
-    }
-
-    Duration get_duration() {
-        if(m_duration == TIME_MEASURE_DEFAULT_DURATION) {
-            this->end();
-        }
-
-        return m_duration;
-    }
+    Duration get_duration();
 };
 
-std::ostream& operator<<(std::ostream& out, TimeMeasure& timeMeasure) {
-    out << timeMeasure.get_duration() << " ms";
-    return out;
-}
+std::ostream& operator<<(std::ostream& out, TimeMeasure& timeMeasure);
+
+std::ostream& operator<<(std::ostream& out, const std::vector<std::string>& vec_str);
 
 #endif //REACTIVE_SYNTHESIS_BFSS_UTILS_H

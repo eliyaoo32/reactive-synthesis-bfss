@@ -5,6 +5,7 @@
 #include <vector>
 #include <spot/tl/formula.hh>
 #include <spot/tl/parse.hh>
+#include <boost/algorithm/string/join.hpp>
 
 using Variables = std::vector<std::string>;
 
@@ -31,7 +32,13 @@ public:
 
     ReactiveSpecification* get_prime();
 
+    const Variables& get_output_vars() { return m_input_vars; }
+
+    const Variables& get_input_vars() { return m_output_vars; }
+
     const spot::formula& get_formula() { return m_formula; }
 };
+
+std::ostream& operator<<(std::ostream& out, ReactiveSpecification& spec);
 
 #endif //REACTIVE_SYNTHESIS_BFSS_REACTIVE_SPECIFICATION_H

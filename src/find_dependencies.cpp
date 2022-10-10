@@ -2,6 +2,7 @@
 #include <boost/algorithm/string.hpp>
 #include <spot/twaalgos/contains.hh>
 
+#include "utils.h"
 #include "reactive_specification.h"
 #include "variable_dependency.h"
 #include "find_dependencies.h"
@@ -9,9 +10,11 @@
 using namespace std;
 
 static BenchmarkMetrics benchmark_metrics;
+static ostream& verbose = std::cout;
+static ostream& result_out = std::cout;
 
 void on_sighup(int args) {
-    std::cout << benchmark_metrics << endl;
+    result_out << benchmark_metrics << endl;
     exit(EXIT_SUCCESS);
 }
 
@@ -27,12 +30,15 @@ int main(int argc, char** argv) {
     all_variables.insert(all_variables.begin(), output_vars.begin(), output_vars.end());
     all_variables.insert(all_variables.begin(), input_vars.begin(), input_vars.end());
 
+    verbose << "=> Extracted The Specification from arguments." << endl;
+    verbose << spec << "All Variables: " << all_variables << endl;
+
     signal(SIGHUP, on_sighup);
 
-    search_for_dependencies(std::cout, benchmark_metrics, spec, all_variables);
+    search_for_dependencies(verbose, benchmark_metrics, spec, all_variables);
 
     // Output results
-    cout << benchmark_metrics;
+    result_out << benchmark_metrics;
 
     return EXIT_SUCCESS;
 }
@@ -64,11 +70,17 @@ void extract_arguments(int argc, char** argv, string& formula, Variables& input_
 }
 
 void search_for_dependencies(ostream& out, BenchmarkMetrics& metrics, ReactiveSpecification& spec, Variables& all_variables) {
+    out << "=> Start constructing TWA of the spec" << endl;
+
     metrics.start_spec_construction();
     spot::twa_graph_ptr formula_automata = construct_formula(spec.get_formula());
     metrics.end_spec_construction();
 
+    out << "==> Constructed Successfully the TWA of the spec" << endl;
+
+    out << "=> Start search for dependent variables" << endl;
     for (string& var : all_variables) {
+        out << "==> Checking variable " << var << endl;
         metrics.start_testing_variable(var);
 
         Variables dependent = { var };
@@ -84,10 +96,14 @@ void search_for_dependencies(ostream& out, BenchmarkMetrics& metrics, ReactiveSp
         // Update metrics
         if(is_dependent) {
             metrics.add_dependent(var);
+            out << "===> The Variable \"" << var << "\" is dependent" << endl;
+        } else {
+            out << "===> The Variable \"" << var << "\" is not dependent" << endl;
         }
 
         metrics.done_testing_variable();
     }
 
     metrics.complete();
+    out << "=> Done Analysing the benchmark" << endl;
 }

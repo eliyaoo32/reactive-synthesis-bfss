@@ -4,6 +4,7 @@
 #include <spot/twaalgos/translate.hh>
 
 #include "reactive_specification.h"
+#include "utils.h"
 
 ReactiveSpecification* ReactiveSpecification::get_prime() {
     // Generate input/output vars
@@ -34,4 +35,16 @@ spot::twa_graph_ptr construct_formula(const spot::formula& formula) {
     spot::twa_graph_ptr automaton = trans.run(formula);
 
     return automaton;
+}
+
+
+std::ostream& operator<<(std::ostream& out, ReactiveSpecification& spec) {
+    std::stringstream formula_stream;
+    formula_stream << spec.get_formula();
+
+    out << "LTL Formula: " << formula_stream.str() << std::endl;
+    out << "Input Variables: " << spec.get_input_vars() << std::endl;
+    out << "Output Variables: " << spec.get_output_vars() << std::endl;
+
+    return out;
 }
