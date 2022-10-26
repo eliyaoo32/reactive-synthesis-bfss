@@ -43,13 +43,18 @@ find_dependencies [LTL_FORMULA] [INPUT_VARS] [OUTPUT_VARS]
 Where `[LTL_FORMULA]` is `LTL3BA`,  the variables `[INPUT_VARS] [OUTPUT_VARS]` are comma-seperated.
 The flag `--verbose` can be attached to follow the process in real-time.
 
-**Example:**
+#### Example
 
 `find_dependencies "G(i_1 <-> (o_1)) & G(o_2)" "i_1" "o_1,o_2"`
 
-**Notes:**
+#### Notes
 * This tool has no timeout.
 * When the process gets the `SIGHUP`, it prints the metrics that was gather until the signal. 
+
+#### Build:
+* The source code of this code is in the folder [./src](src/).
+* The build is done by CMake `cmake .`.
+* If spot is built to a non-stand path, the path cant be attached with the flag `-DSPOT_PREFIX`. For example: `cmake . -DSPOT_PREFIX=~/spot-build` 
 
 ### Tool: Find Dependency in TLSF files
 The tool used to find dependency in TLSF file is [tlsf_dependecies](tools/tlsf_dependecies).
@@ -58,11 +63,11 @@ The usage is:
 tlsf_dependecies [TLSF_PATH] [FIND_DEPENDECIES_PATH] [TIMEOUT]
 ```
 
-**Notes:**
+#### Notes
 * Timeout default value is 40 minutes.
 * Timeout is a floating point number with an optional suffix: 's' for seconds (the default), 'm' for minutes, 'h' for hours or 'd' for days. 
 * Timeout of 0 disables the associated timeout.
 
 
-### Tool: Dependencies Lookup
+### Tool: Dependencies Lookup in SYNTCOMP benchmarks
 Search for dependencies variables in all benchmark files. (TBD: More information soon).
