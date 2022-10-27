@@ -7,7 +7,7 @@ add_executable(find_dependencies find_dependencies.cpp variable_dependency.cpp r
 
 
 # Include BDDX package
-find_library(bddx_location NAMES libbddx.a
+find_library(bddx_location NAMES libbddx.so
             PATHS   ${SPOT_PREFIX}/lib
                     /usr/lib
                     /usr/lib64
@@ -22,7 +22,7 @@ set_target_properties(bddx PROPERTIES IMPORTED_LOCATION ${bddx_location})
 target_link_libraries( find_dependencies bddx )
 
 # Include spot package
-find_library(spot_location NAMES libspot.a
+find_library(spot_location NAMES libspot.so
         PATHS   ${SPOT_PREFIX}/lib
         /usr/lib
         /usr/lib64
