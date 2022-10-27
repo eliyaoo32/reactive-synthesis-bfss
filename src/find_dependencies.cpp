@@ -1,3 +1,4 @@
+#include <signal.h>
 #include <iostream>
 #include <boost/algorithm/string.hpp>
 #include <spot/twaalgos/contains.hh>

@@ -39,3 +39,4 @@ target_link_libraries( find_dependencies spot )
 # Add headers
 # TODO: find the headers of Spot and include them instead of including directly from /usr/local/include
 include_directories(/usr/local/include)
+include_directories(${SPOT_PREFIX}/include)
