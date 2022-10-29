@@ -8,7 +8,7 @@ from search_dependencies_in_benchmark import get_all_benchmarks
 
 OUTPUT_FOLDERS = '../outputs'
 BENCHMARKS = '../benchmarks.csv'
-SUMMARY_FILE = '../outputs.json'
+SUMMARY_FILE = '../results.json'
 
 
 def split_and_trim(string):

@@ -133,4 +133,4 @@ outputs/**
 build/*
 benchmarks.csv
 submit
-outputs.json
+results.json
