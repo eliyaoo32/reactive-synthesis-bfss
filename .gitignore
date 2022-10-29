@@ -129,7 +129,8 @@ fabric.properties
 
 ###################################################### Others
 .DS_Store
-tools/outputs/**
+outputs/**
 build/*
 benchmarks.csv
 submit
+outputs.json

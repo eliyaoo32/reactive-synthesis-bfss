@@ -7,8 +7,8 @@ from random import shuffle
 
 BENCHMARKS_PATH = '../benchmarks.csv'
 OUTPUT_DIR = '../outputs'
-MAX_WORKERS = 4
-TIMEOUT_PER_BENCHMARK = '30s'
+MAX_WORKERS = 16
+TIMEOUT_PER_BENCHMARK = '40m'
 FIND_DEPENDENCIES_PATH = '../build/find_dependencies'
 BENCHMARK_OUTPUT_FILE_FORMAT = '{}.out'
 
@@ -21,7 +21,7 @@ def is_benchmark_output_exists(benchmark_name):
     return os.path.exists(get_benchmark_output_path(benchmark_name))
 
 
-def get_all_benchmarks():
+def get_all_benchmarks(ignore_existing=True):
     with open(BENCHMARKS_PATH, newline='') as csvfile:
         reader = csv.DictReader(csvfile)
         benchmarks = [
@@ -32,7 +32,7 @@ def get_all_benchmarks():
                 'ltl_formula': row['ltl_formula']
             }
             for row in reader
-            if not is_benchmark_output_exists(row['benchmark_name'])
+            if not ignore_existing or is_benchmark_output_exists(row['benchmark_name'])
         ]
 
     return benchmarks
