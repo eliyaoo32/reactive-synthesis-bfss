@@ -10,36 +10,6 @@
   * If variables are dependent on a subset then they depend on the set itself.
 * For each benchmark we limit the execution time to 40 minutes.
 
-[//]: # (* _Optional:_ we can keep search for all dependent variables with the following algorithm,)
-
-[//]: # (where `d` is the found dependent variable and `Variables` is the set of all the variables.)
-
-[//]: # (```)
-
-[//]: # (Unk = Variables - d     /* Unknown assignment for dependent or dependency */)
-
-[//]: # (Dependents = { d }      /* Set of all the dependent */)
-
-[//]: # (Dependencies = { }      /* Set of all the dependencies */)
-
-[//]: # ()
-[//]: # (while Unk is not empty:)
-
-[//]: # (     z = Unk.pop&#40;&#41;      /* Pop variable by some heuristc */)
-
-[//]: # (     if z is dependent on &#40;Unk ∪ Dependencies&#41;:)
-
-[//]: # (        Dependents.add&#40;z&#41;)
-
-[//]: # (    else:)
-
-[//]: # (        Dependencies.add&#40;z&#41;)
-
-[//]: # ()
-[//]: # (// the Dependents set is dependent on the set Dependencies)
-
-[//]: # (```)
-
 ### Metrics
 - [x] Can spot construct the automaton of the benchmark? If yes, how long it took?
 - [x] Did any dependent variable was found? If yes, which one.
@@ -59,6 +29,12 @@ The flag `--verbose` can be attached to follow the process in real-time.
 #### Example
 
 `find_dependencies "G(i_1 <-> (o_1)) & G(o_2)" "i_1" "o_1,o_2"`
+
+### How is it work?
+1. Build automata of the given LTL formula.
+2. For each variable `x` in LTL formula $$\varphi$$:
+   - Check if `x` is dependent of the rest of variables.
+   - Check dependency if the LTL formula is empty: $$\varphi'(X, Y, X', Y')=\varphi(X, Y)\wedge \varphi(X', Y')\wedge ((Y=Y')U(Y=Y' \wedge X \neq X'))$$ 
 
 #### Notes
 * This tool has no timeout.
