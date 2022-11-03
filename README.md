@@ -32,9 +32,9 @@ The flag `--verbose` can be attached to follow the process in real-time.
 
 ### How is it work?
 1. Build automata of the given LTL formula.
-2. For each variable `x` in LTL formula $$\varphi$$:
+2. For each variable `x` in LTL formula $\varphi$:
    - Check if `x` is dependent of the rest of variables.
-   - Check dependency if the LTL formula is empty: $$\varphi'(X, Y, X', Y')=\varphi(X, Y)\wedge \varphi(X', Y')\wedge ((Y=Y')U(Y=Y' \wedge X \neq X'))$$ 
+   - Check dependency if the LTL formula is empty: $\varphi'(X, Y, X', Y')=\varphi(X, Y)\wedge \varphi(X', Y')\wedge ((Y=Y')U(Y=Y' \wedge X \neq X'))$
 
 #### Notes
 * This tool has no timeout.
