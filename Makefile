@@ -15,7 +15,8 @@ INC_FLAGS := $(addprefix -I,$(INC_DIRS))
 CPPFLAGS := -std=c++17 $(INC_FLAGS) -MMD -MP
 
 # TODO: find a better way to do it...
-LDFLAGS += -L/home/*****/work/spot/lib '-Wl,-R$$ORIGIN' -lbddx -lspot
+# LDFLAGS += -L/home/*****/work/spot/lib '-Wl,-R$$ORIGIN' -lbddx -lspot
+LDFLAGS += -lbddx -lspot
 
 $(BUILD_DIR)/$(TARGET_EXEC): $(OBJS)
 	$(CXX) $(OBJS) -o $@ $(LDFLAGS)
