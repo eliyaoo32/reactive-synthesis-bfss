@@ -21,7 +21,15 @@ def is_benchmark_output_exists(benchmark_name):
     return os.path.exists(get_benchmark_output_path(benchmark_name))
 
 
-def get_all_benchmarks(ignore_existing=True):
+def get_all_benchmarks(ignore_if_output_exists=True, benchmark_name_filter=''):
+    def is_benchmark_valid(benchmark_name):
+        if ignore_if_output_exists and is_benchmark_output_exists(benchmark_name):
+            return False
+        if benchmark_name_filter not in benchmark_name:
+            return False
+
+        return True
+    
     with open(BENCHMARKS_PATH, newline='') as csvfile:
         reader = csv.DictReader(csvfile)
         benchmarks = [
@@ -32,7 +40,7 @@ def get_all_benchmarks(ignore_existing=True):
                 'ltl_formula': row['ltl_formula']
             }
             for row in reader
-            if not ignore_existing or is_benchmark_output_exists(row['benchmark_name'])
+            if is_benchmark_valid(row['benchmark_name'])
         ]
 
     return benchmarks
@@ -69,9 +77,14 @@ def create_folder(folder_name):
 
 
 def main():
+    from argparse import ArgumentParser
+    parser = ArgumentParser()
+    parser.add_argument('--name', help="Filter by benchmarks name", type=str, default='')
+    args = parser.parse_args()
+    
     create_folder(OUTPUT_DIR)
-    benchmarks = get_all_benchmarks()
-    print("Found {} unprocessed benchmarks.".format(len(benchmarks)))
+    benchmarks = get_all_benchmarks(benchmark_name_filter=args.name)
+    print("Found {} benchmarks.".format(len(benchmarks)))
     shuffle(benchmarks)
 
     pool = Pool(processes=MAX_WORKERS)
