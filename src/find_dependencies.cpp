@@ -36,7 +36,11 @@ int main(int argc, char** argv) {
 
     signal(SIGHUP, on_sighup);
 
-    search_for_dependencies(verbose, benchmark_metrics, spec, all_variables);
+    try {
+        search_for_dependencies(verbose, benchmark_metrics, spec, all_variables);
+    } catch(...) {
+        result_out << "Issue with finding deps" << endl;
+    }
 
     // Output results
     result_out << benchmark_metrics;

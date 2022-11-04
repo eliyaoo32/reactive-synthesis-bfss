@@ -80,10 +80,11 @@ def main():
     from argparse import ArgumentParser
     parser = ArgumentParser()
     parser.add_argument('--name', help="Filter by benchmarks name", type=str, default='')
+    parser.add_argument('--all', help="Apply altough output file already exists ", default=False, action='store_true')
     args = parser.parse_args()
     
     create_folder(OUTPUT_DIR)
-    benchmarks = get_all_benchmarks(benchmark_name_filter=args.name)
+    benchmarks = get_all_benchmarks(ignore_if_output_exists=(not args.all), benchmark_name_filter=args.name)
     print("Found {} benchmarks.".format(len(benchmarks)))
     shuffle(benchmarks)
 

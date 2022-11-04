@@ -12,7 +12,7 @@ INC_DIRS := $(shell find $(SRC_DIRS) -type d)
 INC_DIRS += /home/eliyahub/work/spot/include
 INC_FLAGS := $(addprefix -I,$(INC_DIRS))
 
-CPPFLAGS := -std=c++17 $(INC_FLAGS) -MMD -MP
+CPPFLAGS := -Wall -Wextra -std=c++17 $(INC_FLAGS) -MMD -MP
 
 # TODO: find a better way to do it...
 # LDFLAGS += -L/home/*****/work/spot/lib '-Wl,-R$$ORIGIN' -lbddx -lspot

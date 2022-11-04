@@ -32,9 +32,9 @@ public:
 
     ReactiveSpecification* get_prime();
 
-    const Variables& get_output_vars() { return m_input_vars; }
+    const Variables& get_output_vars() { return m_output_vars; }
 
-    const Variables& get_input_vars() { return m_output_vars; }
+    const Variables& get_input_vars() { return m_input_vars; }
 
     const spot::formula& get_formula() { return m_formula; }
 };
