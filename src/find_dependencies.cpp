@@ -38,13 +38,16 @@ int main(int argc, char** argv) {
 
     try {
         search_for_dependencies(verbose, benchmark_metrics, spec, all_variables);
+    } catch (const std::runtime_error& e) {
+        cerr << "Error: " << e.what() << endl;
+        return EXIT_FAILURE;
     } catch(...) {
         result_out << "Issue with finding deps" << endl;
     }
 
     // Output results
     result_out << benchmark_metrics;
-
+    
     return EXIT_SUCCESS;
 }
 

@@ -16,8 +16,12 @@ spot::formula* equal_to_prime_formula(Variables& vars) {
     });
 
     std::string equal_to_prime_str = boost::algorithm::join(var_equal_to_prime, " & ");
-    auto* equal_to_prime_formula = new spot::formula(spot::parse_formula(equal_to_prime_str));
+    spot::parsed_formula pf = spot::parse_infix_psl(equal_to_prime_str); // Need one of parse_infix_psl(), parse_prefix_ltl().
+    if(pf.format_errors(std::cerr)) {
+        throw std::runtime_error("Error parsing formula: " + equal_to_prime_str);
+    }
 
+    auto* equal_to_prime_formula = new spot::formula(pf.f);
     return equal_to_prime_formula;
 }
 
