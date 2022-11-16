@@ -6,16 +6,17 @@
 #include <spot/tl/formula.hh>
 #include <string>
 #include <vector>
+#include <spot/twa/fwd.hh>
 
 bool parse_cli(int argc, const char *argv[], std::string &formula,
                std::vector<std::string> &input_vars,
                std::vector<std::string> &output_vars, bool &verbose_output);
 
 struct ReactiveSyntInstance {
-    std::string formula_str;  // TODO: check if I can remove this field
     std::vector<std::string> input_vars;
     std::vector<std::string> output_vars;
     spot::formula formula;
+    spot::twa_graph_ptr automaton;
 };
 
 std::ostream &operator<<(std::ostream &out,

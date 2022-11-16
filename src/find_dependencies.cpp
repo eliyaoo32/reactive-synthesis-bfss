@@ -21,6 +21,7 @@ int main(int argc, const char* argv[]) {
         parse_cli(argc, argv, reactive_synthesis_instance.formula_str,
                   reactive_synthesis_instance.input_vars,
                   reactive_synthesis_instance.output_vars, verbose_output);
+
     if (!parsed_cli_status) {
         return EXIT_FAILURE;
     }

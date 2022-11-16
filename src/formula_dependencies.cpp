@@ -22,7 +22,7 @@ void FormulaDependencies::find_dependencies(
         std::copy(independent_variables.begin(), independent_variables.end(), std::back_inserter(dependency_set));
 
         // Check if candidates variable is dependent
-        if (is_variable_dependent(dependent_var, dependency_set)) {
+        if (this->is_variable_dependent(dependent_var, dependency_set)) {
             dependent_variables.push_back(dependent_var);
         } else {
             independent_variables.push_back(dependent_var);
