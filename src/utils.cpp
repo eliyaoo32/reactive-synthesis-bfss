@@ -1,31 +1,63 @@
-#include <boost/algorithm/string/join.hpp>
-#include <iostream>
-
 #include "utils.h"
 
-Duration TimeMeasure::end() {
-    TimePoint end = high_resolution_clock::now();
-    m_duration = static_cast<Duration>(duration_cast<milliseconds>(end - m_start_time).count());
+#include <boost/program_options.hpp>
+#include <boost/algorithm/string.hpp>
+#include <iostream>
+#include <string>
+#include <vector>
 
-    return m_duration;
-}
+namespace Options = boost::program_options;
+using namespace std;
 
-Duration TimeMeasure::get_duration() {
-    if(m_duration == TIME_MEASURE_DEFAULT_DURATION) {
-        this->end();
+bool parse_cli(int argc, const char *argv[], string &formula,
+               vector<string> &input_vars, vector<string> &output_vars,
+               bool &verbose_output) {
+    Options::options_description desc(
+        "Tool to find dependencies in LTL formula");
+
+    desc.add_options()("formula,f",
+                       Options::value<string>(&formula)->required(),
+                       "LTL formula")(
+        "output,o",
+        Options::value<string>()->required(),
+        "Output variables")(
+        "input,i",
+        Options::value<string>()->required(),
+        "Input variables")("verbose,v", Options::bool_switch(&verbose_output),
+                           "Verbose messages");
+
+    try {
+        Options::command_line_parser parser{argc, argv};
+        parser.options(desc).allow_unregistered().style(
+            Options::command_line_style::default_style |
+            Options::command_line_style::allow_slash_for_short);
+        Options::parsed_options parsed_options = parser.run();
+
+        Options::variables_map vm;
+        Options::store(parsed_options, vm);
+        Options::notify(vm);
+
+        boost::split(input_vars, vm["input"].as<string>(), boost::is_any_of(","));
+        boost::split(output_vars, vm["output"].as<string>(), boost::is_any_of(","));
+
+        return true;
+    } catch (const Options::error &ex) {
+        cerr << ex.what() << '\n';
+        cout << desc << endl;
+        return false;
     }
-
-    return m_duration;
 }
 
-std::ostream& operator<<(std::ostream& out, TimeMeasure& timeMeasure) {
-    out << timeMeasure.get_duration() << " ms";
+ostream &operator<<(ostream &out, const vector<string> &vec) {
+    for (const string &s : vec) {
+        out << s << ", ";
+    }
     return out;
-}
+};
 
-std::ostream& operator<<(std::ostream& out, const std::vector<std::string>& vec_str) {
-    out << boost::algorithm::join(vec_str, ", ");
+ostream &operator<<(ostream &out, const ReactiveSyntInstance &instance) {
+    out << "formula: " << instance.formula_str << endl;
+    out << "input vars: " << instance.input_vars << endl;
+    out << "output vars: " << instance.output_vars << endl;
     return out;
-}
-
-std::ostream null_ostream(nullptr);
+};

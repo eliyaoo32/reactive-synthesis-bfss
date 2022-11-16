@@ -3,16 +3,22 @@ project(reactive-synthesis-bfss)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(find_dependencies find_dependencies.cpp variable_dependency.cpp reactive_specification.cpp utils.cpp)
+FILE(GLOB find_dependencies_SRC *.cpp)
 
+add_executable(find_dependencies ${find_dependencies_SRC} )
+
+# Include Boots Options package
+find_library(boost_options_location NAMES libboost_program_options.a)
+if(NOT boost_options_location)
+    message(FATAL_ERROR "Boost-options library not found")
+endif()
+message(STATUS "Found BoostOptions location at ${boost_options_location}")
+add_library(boost_options STATIC IMPORTED)
+set_target_properties(boost_options PROPERTIES IMPORTED_LOCATION ${boost_options_location})
+target_link_libraries( find_dependencies boost_options )
 
 # Include BDDX package
-find_library(bddx_location NAMES libbddx.so
-            PATHS   ${SPOT_PREFIX}/lib
-                    /usr/lib
-                    /usr/lib64
-                    /usr/local/lib
-                    /usr/local/lib64 )
+find_library(bddx_location NAMES libbddx.a)
 if(NOT bddx_location)
     message(FATAL_ERROR "BDDX library not found")
 endif()
@@ -22,12 +28,7 @@ set_target_properties(bddx PROPERTIES IMPORTED_LOCATION ${bddx_location})
 target_link_libraries( find_dependencies bddx )
 
 # Include spot package
-find_library(spot_location NAMES libspot.so
-        PATHS   ${SPOT_PREFIX}/lib
-        /usr/lib
-        /usr/lib64
-        /usr/local/lib
-        /usr/local/lib64 )
+find_library(spot_location NAMES libspot.a)
 if(NOT spot_location)
     message(FATAL_ERROR "Spot library not found")
 endif()
@@ -36,7 +37,5 @@ add_library(spot STATIC IMPORTED)
 set_target_properties(spot PROPERTIES IMPORTED_LOCATION ${spot_location})
 target_link_libraries( find_dependencies spot )
 
-# Add headers
-# TODO: find the headers of Spot and include them instead of including directly from /usr/local/include
+# TODO: find a way to include the spot headers and boost headers
 include_directories(/usr/local/include)
-include_directories(${SPOT_PREFIX}/include)

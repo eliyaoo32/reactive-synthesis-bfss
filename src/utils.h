@@ -1,35 +1,26 @@
-#ifndef REACTIVE_SYNTHESIS_BFSS_UTILS_H
-#define REACTIVE_SYNTHESIS_BFSS_UTILS_H
+#ifndef UTILS_H
+#define UTILS_H
 
-#define TIME_MEASURE_DEFAULT_DURATION (-1)
-
-#include <chrono>
+#include <boost/program_options.hpp>
+#include <iostream>
+#include <spot/tl/formula.hh>
+#include <string>
 #include <vector>
-using namespace std::chrono;
 
-using TimePoint = std::chrono::time_point<std::chrono::high_resolution_clock>;
-using Duration = long;
+bool parse_cli(int argc, const char *argv[], std::string &formula,
+               std::vector<std::string> &input_vars,
+               std::vector<std::string> &output_vars, bool &verbose_output);
 
-class TimeMeasure {
-private:
-    TimePoint m_start_time;
-    Duration m_duration;
-public:
-    TimeMeasure() : m_duration(TIME_MEASURE_DEFAULT_DURATION) {}
-
-    void start() {
-        m_start_time = high_resolution_clock::now();
-    }
-
-    Duration end();
-
-    Duration get_duration();
+struct ReactiveSyntInstance {
+    std::string formula_str;  // TODO: check if I can remove this field
+    std::vector<std::string> input_vars;
+    std::vector<std::string> output_vars;
+    spot::formula formula;
 };
 
-std::ostream& operator<<(std::ostream& out, TimeMeasure& timeMeasure);
+std::ostream &operator<<(std::ostream &out,
+                         const std::vector<std::string> &vec);
+std::ostream &operator<<(std::ostream &out,
+                         const ReactiveSyntInstance &instance);
 
-std::ostream& operator<<(std::ostream& out, const std::vector<std::string>& vec_str);
-
-extern std::ostream null_ostream;
-
-#endif //REACTIVE_SYNTHESIS_BFSS_UTILS_H
+#endif

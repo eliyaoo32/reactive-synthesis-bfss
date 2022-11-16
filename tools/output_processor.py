@@ -76,7 +76,7 @@ def process_output_file(output_file_path, benchmarks_information):
 
 def main():
     output_files = get_all_output_files()
-    benchmarks = get_all_benchmarks(ignore_existing=False)
+    benchmarks = get_all_benchmarks(ignore_if_output_exists=False)
 
     processed_outputs = [
         process_output_file(output_file, benchmarks)

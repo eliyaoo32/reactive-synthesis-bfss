@@ -135,3 +135,5 @@ benchmarks.csv
 benchmarks-errors.csv
 submit
 results.json
+.vscode/
+src/cmake-build-debug/
