@@ -87,7 +87,7 @@ void equal_to_primes_formula(spot::formula& dst, vector<string>& vars) {
     dst = pf.f;
 }
 
-void synt_instance_prime(ReactiveSyntInstance& src, ReactiveSyntInstance& dst) {
+void synt_instance_prime(SyntInstance& src, SyntInstance& dst) {
     // Build variables in dest
     dst.input_vars.resize(src.input_vars.size());
     dst.output_vars.resize(src.output_vars.size());
