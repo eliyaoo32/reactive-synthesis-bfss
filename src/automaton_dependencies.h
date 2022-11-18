@@ -13,19 +13,21 @@ using PairState = std::pair<unsigned, unsigned>;
 
 using PairEdges = std::pair<spot::twa_graph::edge_storage_t, spot::twa_graph::edge_storage_t>;
 
-void getAllCompatibleStates(std::vector<PairState> &pairStates, spot::twa_graph_ptr aut);
+void getAllCompatibleStates(std::vector<PairState> &pairStates, const spot::twa_graph_ptr& aut);
 
 bool areEdgesShareCommonVariable(spot::twa_graph::edge_storage_t& e1, spot::twa_graph::edge_storage_t& e2);
+
+bool isDependentByConditions(int dependent_var, std::vector<int>& dependency_vars, const bdd& cond1, const bdd& cond2, spot::twa_graph_ptr& aut);
 
 class AutomatonDependencies {
 private:
     SyntInstance &m_synt_instance;
 
-    bool is_variable_dependent(std::string dependent_var, std::vector<std::string>& dependency_vars,
-                               std::vector<PairState>& pairStates, spot::twa_graph_ptr aut);
+    bool is_variable_dependent(std::string dependent_var, std::vector<std::string> &dependency_vars,
+                               std::vector<PairState> &pairStates, spot::twa_graph_ptr aut);
 
-    bool isVariableDependentByPairEdge(std::string dependent_var, std::vector<std::string>& dependency_vars,
-                                       PairEdges edges, spot::twa_graph_ptr aut);
+    static bool isVariableDependentByPairEdge(std::string& dependent_var, std::vector<std::string>& dependency_vars,
+                                       const PairEdges& edges, spot::twa_graph_ptr& aut);
 public:
     AutomatonDependencies(SyntInstance &synt_instance)
         : m_synt_instance(synt_instance) {};
