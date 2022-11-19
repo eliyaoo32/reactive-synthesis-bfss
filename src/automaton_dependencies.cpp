@@ -24,7 +24,7 @@ void AutomatonDependencies::find_dependencies(std::vector<std::string> &dependen
         std::copy(independent_variables.begin(), independent_variables.end(), std::back_inserter(dependency_set));
 
         // Check if candidates variable is dependent
-        if (this->is_variable_dependent(dependent_var, dependency_set, compatibleStates, automaton)) {
+        if (AutomatonDependencies::is_variable_dependent(dependent_var, dependency_set, compatibleStates, automaton)) {
             dependent_variables.push_back(dependent_var);
         } else {
             independent_variables.push_back(dependent_var);
@@ -49,18 +49,18 @@ bool AutomatonDependencies::is_variable_dependent(std::string dependent_var, vec
     return true;
 }
 
-// TODO: read about BDD garbage collection
-// TODO: read about bdd_addref
+
 // TODO: check maybe I can apply the & operator and exists first and after that restrict the dependent_var
 // TODO: is the function isDependentByConditions can be cached?
+// TODO: Check - should I cache the operator register_ap?
 
 bool AutomatonDependencies::isVariableDependentByPairEdge(std::string& dependent_var, std::vector<std::string>& dependency_vars,
                                                           const PairEdges& edges, spot::twa_graph_ptr& aut) {
-    auto get_ap_index = [&aut](const std::string& var) { return aut->register_ap(var); };
-    int dependent_var_num = get_ap_index(dependent_var);
+    auto get_var_index = [&aut](const std::string& var) { return aut->register_ap(var); };
+    int dependent_var_num = get_var_index(dependent_var);
 
     vector<int> dependency_vars_num;
-    std::transform(dependency_vars.begin(), dependency_vars.end(), std::back_inserter(dependency_vars_num), get_ap_index);
+    std::transform(dependency_vars.begin(), dependency_vars.end(), std::back_inserter(dependency_vars_num), get_var_index);
 
     // Can the 1st edge be assigned to true and 2nd to false?
     if(!isDependentByConditions(dependent_var_num, dependency_vars_num, edges.first.cond, edges.second.cond, aut)) {

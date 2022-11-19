@@ -23,13 +23,13 @@ class AutomatonDependencies {
 private:
     SyntInstance &m_synt_instance;
 
-    bool is_variable_dependent(std::string dependent_var, std::vector<std::string> &dependency_vars,
+    static bool is_variable_dependent(std::string dependent_var, std::vector<std::string> &dependency_vars,
                                std::vector<PairState> &pairStates, spot::twa_graph_ptr aut);
 
     static bool isVariableDependentByPairEdge(std::string& dependent_var, std::vector<std::string>& dependency_vars,
                                        const PairEdges& edges, spot::twa_graph_ptr& aut);
 public:
-    AutomatonDependencies(SyntInstance &synt_instance)
+    explicit AutomatonDependencies(SyntInstance &synt_instance)
         : m_synt_instance(synt_instance) {};
 
     void find_dependencies(std::vector<std::string> &dependent_variables,

@@ -28,7 +28,7 @@ class FormulaDependencies {
     void build_prime_synt_instance();
 
    public:
-    FormulaDependencies(SyntInstance& synt_instance) : m_synt_instance(synt_instance) {
+    explicit FormulaDependencies(SyntInstance& synt_instance) : m_synt_instance(synt_instance) {
         build_prime_synt_instance();
     }
 

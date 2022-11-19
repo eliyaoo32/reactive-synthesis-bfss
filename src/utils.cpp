@@ -9,9 +9,7 @@ namespace Options = boost::program_options;
 using namespace std;
 
 bool parse_cli(int argc, const char *argv[], std::string &formula, std::string &input_vars,
-               std::string &output_vars) {
-    bool should_verbose = false;
-
+               std::string &output_vars, bool& should_verbose) {
     Options::options_description desc(
         "Tool to find dependencies in LTL formula");
     desc.add_options()
@@ -40,10 +38,6 @@ bool parse_cli(int argc, const char *argv[], std::string &formula, std::string &
         Options::store(parsed_options, vm);
         Options::notify(vm);
 
-//        if(should_verbose) {
-//            verbose_out = &std::cout;
-//        }
-
         return true;
     } catch (const Options::error &ex) {
         cerr << ex.what() << '\n';
@@ -55,6 +49,7 @@ bool parse_cli(int argc, const char *argv[], std::string &formula, std::string &
 SyntInstance::SyntInstance(const std::string& input_str, const std::string& output_str) {
     boost::split(m_input_vars, input_str, boost::is_any_of(","));
     boost::split(m_output_vars, output_str, boost::is_any_of(","));
+    m_formula = nullptr;
 }
 
 void SyntInstance::build_formula(const std::string& formula) {
@@ -72,26 +67,22 @@ std::string SyntInstance::get_formula_str() const {
     return formula_stream.str();
 }
 
-spot::twa_graph_ptr& SyntInstance::build_automaton(bool prune) {
+spot::twa_graph_ptr SyntInstance::build_automaton(bool prune) {
     if(m_formula == nullptr) {
         throw std::runtime_error("Formula is not built yet");
     }
-    if(m_automaton != nullptr) {
-        return m_automaton;
-    }
 
-    // TODO: check the automaton is state-based
     spot::translator trans;
     trans.set_type(spot::postprocessor::Buchi);
-    trans.set_pref(spot::postprocessor::SBAcc);  // TODO: check Maybe postprocessor::Small?
-    m_automaton = trans.run(m_formula);
+    trans.set_pref(spot::postprocessor::SBAcc);
+    auto automaton = trans.run(m_formula);
 
     if(prune) {
         // Prune unreachable states
-        m_automaton = spot::scc_filter_states(m_automaton);
+        automaton = spot::scc_filter_states(automaton);
     }
 
-    return m_automaton;
+    return automaton;
 }
 
 ostream &operator<<(ostream &out, const vector<string> &vec) {
@@ -99,7 +90,7 @@ ostream &operator<<(ostream &out, const vector<string> &vec) {
         out << s << ", ";
     }
     return out;
-};
+}
 
 ostream &operator<<(ostream &out, const SyntInstance &instance) {
     out << "formula: " << instance.get_formula_str() << endl;

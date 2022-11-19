@@ -5,6 +5,7 @@
 #include <iostream>
 #include <spot/tl/formula.hh>
 #include <string>
+#include <utility>
 #include <vector>
 #include <spot/twa/fwd.hh>
 #include <spot/tl/parse.hh>
@@ -14,36 +15,33 @@
 #include <boost/algorithm/string/classification.hpp>
 
 bool parse_cli(int argc, const char *argv[], std::string &formula,
-               std::string &input, std::string &output);
+               std::string &input, std::string &output, bool& should_verbose);
 
 class SyntInstance {
 private:
     std::vector<std::string> m_input_vars;
     std::vector<std::string> m_output_vars;
     spot::formula* m_formula;
-    spot::twa_graph_ptr m_automaton;
 public:
     SyntInstance(const std::string& input_str, const std::string& output_str);
-    SyntInstance(const std::vector<std::string> inputs, const std::vector<std::string> outputs)
-                : m_input_vars(inputs), m_output_vars(outputs) {};
+    SyntInstance(std::vector<std::string>  inputs, std::vector<std::string>  outputs)
+                : m_input_vars(std::move(inputs)), m_output_vars(std::move(outputs)), m_formula(nullptr) {};
 
     ~SyntInstance() {
         delete m_formula;
     }
 
-    spot::twa_graph_ptr get_automaton() const { return m_automaton; }
+    [[nodiscard]] spot::formula* get_formula() const { return m_formula; }
 
-    spot::formula* get_formula() const { return m_formula; }
+    [[nodiscard]] const std::vector<std::string>& get_input_vars() const { return m_input_vars; }
 
-    const std::vector<std::string>& get_input_vars() const { return m_input_vars; }
-
-    const std::vector<std::string>& get_output_vars() const { return m_output_vars; }
+    [[nodiscard]] const std::vector<std::string>& get_output_vars() const { return m_output_vars; }
 
     void build_formula(const std::string& formula);
 
-    spot::twa_graph_ptr& build_automaton(bool prune=false);
+    spot::twa_graph_ptr build_automaton(bool prune=false);
 
-    std::string get_formula_str() const;
+    [[nodiscard]] std::string get_formula_str() const;
 
     friend std::ostream& operator<<(std::ostream& out, const SyntInstance& instance);
 };
