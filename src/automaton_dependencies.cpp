@@ -50,13 +50,13 @@ bool AutomatonDependencies::is_variable_dependent(std::string dependent_var, vec
 }
 
 
-// TODO: check maybe I can apply the & operator and exists first and after that restrict the dependent_var
-// TODO: is the function isDependentByConditions can be cached?
-// TODO: Check - should I cache the operator register_ap?
 
 bool AutomatonDependencies::isVariableDependentByPairEdge(std::string& dependent_var, std::vector<std::string>& dependency_vars,
                                                           const PairEdges& edges, spot::twa_graph_ptr& aut) {
-    auto get_var_index = [&aut](const std::string& var) { return aut->register_ap(var); };
+    auto get_var_index = [&aut](const std::string& var) {
+        // TODO: Check - should I cache the operator register_ap so I don't have to call it every time?
+        return aut->register_ap(var);
+    };
     int dependent_var_num = get_var_index(dependent_var);
 
     vector<int> dependency_vars_num;
@@ -78,6 +78,7 @@ bool AutomatonDependencies::isVariableDependentByPairEdge(std::string& dependent
 // If exists values to dependency variables such that with different values of dependent variable the condition is satisfiable, then dependent variable is not dependent
 bool isDependentByConditions(int dependent_var, std::vector<int>& dependency_vars, const bdd& cond1, const bdd& cond2, spot::twa_graph_ptr& aut) {
     bdd z = bdd_restrict(cond1, bdd_ithvar(dependent_var)) & bdd_restrict(cond2, bdd_nithvar(dependent_var));
+
     for(auto& var : dependency_vars) {
         z = bdd_exist(z, bdd_ithvar(var));
     }

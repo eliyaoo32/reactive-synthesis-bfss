@@ -14,8 +14,14 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
 
+
+enum Algorithms {
+    FORMULA = 1,
+    AUTOMATON = 2
+};
+
 bool parse_cli(int argc, const char *argv[], std::string &formula,
-               std::string &input, std::string &output, bool& should_verbose);
+               std::string &input, std::string &output, bool& should_verbose, int& algorithms);
 
 class SyntInstance {
 private:
