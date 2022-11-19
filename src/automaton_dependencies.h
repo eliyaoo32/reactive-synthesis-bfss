@@ -7,7 +7,7 @@
 #include <spot/tl/parse.hh>
 #include <spot/twaalgos/translate.hh>
 
-#include "utils.h"
+#include "synt_instance.h"
 
 using PairState = std::pair<unsigned, unsigned>;
 

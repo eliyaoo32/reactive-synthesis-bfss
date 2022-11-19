@@ -12,7 +12,7 @@
 
 ### Metrics
 - [x] Can spot construct the automaton of the benchmark? If yes, how long it took?
-- [x] Did any dependent variable was found? If yes, which one.
+- [x] What are the dependent variables and independent variables? 
 - [x] Which variables was checked?
 - [x] How long it took for each variable to check if it's dependent.
 - [x] Total duration of the process

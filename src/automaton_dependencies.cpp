@@ -6,7 +6,7 @@ using namespace std;
 
 void AutomatonDependencies::find_dependencies(std::vector<std::string> &dependent_variables,
                                               std::vector<std::string> &independent_variables) {
-    auto automaton = m_synt_instance.build_automaton(true);
+    auto automaton = m_synt_instance.build_buchi_automaton(true);
 
     // Find PairStates
     vector<PairState> compatibleStates;

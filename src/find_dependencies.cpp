@@ -4,6 +4,7 @@
 #include "formula_dependencies.h"
 #include "automaton_dependencies.h"
 #include "utils.h"
+#include "synt_instance.h"
 
 namespace Options = boost::program_options;
 using namespace std;
@@ -29,7 +30,7 @@ int main(int argc, const char* argv[]) {
     synt_instance.build_formula(synt_formula);
 
     verbose_out << "Building Synthesis Automaton..." << endl;
-    auto automaton = synt_instance.build_automaton();
+    auto automaton = synt_instance.build_buchi_automaton();
     automaton.reset();
 
     verbose_out << "Synthesis Problem: " << endl;

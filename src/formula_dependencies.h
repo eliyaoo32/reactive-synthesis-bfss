@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-#include "utils.h"
+#include "synt_instance.h"
 
 using namespace std;
 
