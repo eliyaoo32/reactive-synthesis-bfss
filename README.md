@@ -10,13 +10,18 @@
   * If variables are dependent on a subset then they depend on the set itself.
 * For each benchmark we limit the execution time to 40 minutes.
 
-### Metrics
+### General - Metrics
 - [x] Can spot construct the automaton of the benchmark? If yes, how long it took?
 - [x] What are the dependent variables and independent variables? 
 - [x] Which variables was checked?
 - [x] How long it took for each variable to check if it's dependent.
 - [x] Total duration of the process
 - [x] Was the process finished on time, or it had a timeout? In case of timeout, at what variable checking was stopped.
+
+### Automaton - Metrics
+- [x] How many states does the automaton have?
+- [x] How many pairs states was found?
+- [x] How long it took to find the pairs states?
 
 ### Tool: Find Dependencies
 The tool to find dependencies in a LTL formula is [find_dependencies](src/find_dependencies.cpp). The usage is:

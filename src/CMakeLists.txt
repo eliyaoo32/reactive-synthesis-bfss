@@ -17,6 +17,16 @@ add_library(boost_options STATIC IMPORTED)
 set_target_properties(boost_options PROPERTIES IMPORTED_LOCATION ${boost_options_location})
 target_link_libraries( find_dependencies boost_options )
 
+# Include Boots JSON package
+find_library(boost_json_location NAMES libboost_json.a)
+if(NOT boost_json_location)
+    message(FATAL_ERROR "Boost-JSON library not found")
+endif()
+message(STATUS "Found Boost-JSON location at ${boost_json_location}")
+add_library(boost_json STATIC IMPORTED)
+set_target_properties(boost_json PROPERTIES IMPORTED_LOCATION ${boost_json_location})
+target_link_libraries( find_dependencies boost_json )
+
 # Include BDDX package
 find_library(bddx_location NAMES libbddx.a)
 if(NOT bddx_location)

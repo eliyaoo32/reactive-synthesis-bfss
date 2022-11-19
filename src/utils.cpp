@@ -8,9 +8,7 @@ namespace Options = boost::program_options;
 using namespace std;
 
 bool parse_cli(int argc, const char *argv[], std::string &formula, std::string &input_vars,
-               std::string &output_vars, bool& should_verbose, int& algorithms) {
-    algorithms = 0; // Init with no algorithm selected
-
+               std::string &output_vars, bool& should_verbose, Algorithm& selected_algorithm) {
     Options::options_description desc(
         "Tool to find dependencies in LTL formula");
     desc.add_options()
@@ -27,7 +25,7 @@ bool parse_cli(int argc, const char *argv[], std::string &formula, std::string &
             "verbose,v", Options::bool_switch(&should_verbose), "Verbose messages"
         )
         (
-            "algo,algorithm", Options::value<std::vector<std::string>>()->multitoken()->zero_tokens()->composing(),
+            "algo,algorithm", Options::value<string>()->required(),
             "Which algorithm to use: formula, automaton"
         );
 
@@ -44,18 +42,15 @@ bool parse_cli(int argc, const char *argv[], std::string &formula, std::string &
         Options::notify(vm);
 
         if(vm.count("algo")) {
-            for (auto &algo : vm["algo"].as<std::vector<std::string>>()) {
-                if (algo == "formula") {
-                    algorithms |= Algorithms::FORMULA;
-                } else if (algo == "automaton") {
-                    algorithms |= Algorithms::AUTOMATON;
-                } else {
-                    std::cerr << "Unknown algorithm: " << algo << std::endl;
-                    return false;
-                }
+            selected_algorithm = string_to_algorithm(vm["algo"].as<string>());
+
+            if(selected_algorithm == Algorithm::UNKNOWN) {
+                cerr << "Invalid algorithm: " << vm["algo"].as<string>() << endl;
+                return false;
             }
         } else {
-            algorithms = Algorithms::FORMULA | Algorithms::AUTOMATON;
+            std::cerr << "No algorithm was selected " << std::endl;
+            return false;
         }
 
         return true;
@@ -63,6 +58,17 @@ bool parse_cli(int argc, const char *argv[], std::string &formula, std::string &
         cerr << ex.what() << '\n';
         cout << desc << endl;
         return false;
+    }
+}
+
+
+Algorithm string_to_algorithm(const std::string& str) {
+    if (str == "formula") {
+        return Algorithm::FORMULA;
+    } else if (str == "automaton") {
+        return Algorithm::AUTOMATON;
+    } else {
+        return Algorithm::UNKNOWN;
     }
 }
 
