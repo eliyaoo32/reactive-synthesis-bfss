@@ -1,4 +1,4 @@
-#include "formula_dependencies.h"
+#include "formula_algorithm.h"
 
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/replace.hpp>
@@ -7,7 +7,7 @@
 #include <spot/twaalgos/contains.hh>
 #include <spot/twaalgos/translate.hh>
 
-void FormulaDependencies::find_dependencies(
+void FormulaAlgorithm::find_dependencies(
     std::vector<std::string>& dependent_variables,
     std::vector<std::string>& independent_variables) {
 
@@ -32,7 +32,7 @@ void FormulaDependencies::find_dependencies(
     }
 }
 
-bool FormulaDependencies::is_variable_dependent(string& dependent_var, vector<string>& dependency_vars) {
+bool FormulaAlgorithm::is_variable_dependent(string& dependent_var, vector<string>& dependency_vars) {
     spot::formula* dependency_formula = get_dependency_formula(dependent_var, dependency_vars);
 
     spot::translator trans;  // TODO: find best options for this translator
@@ -43,7 +43,7 @@ bool FormulaDependencies::is_variable_dependent(string& dependent_var, vector<st
     return is_empty;
 }
 
-spot::formula* FormulaDependencies::get_dependency_formula(string& dependent_var, vector<string>& dependency_vars) {
+spot::formula* FormulaAlgorithm::get_dependency_formula(string& dependent_var, vector<string>& dependency_vars) {
     if (dependent_var.empty() || dependency_vars.empty()) {
         throw std::invalid_argument(
             "Dependent and dependency are required to have at least 1 item to "
@@ -68,7 +68,7 @@ spot::formula* FormulaDependencies::get_dependency_formula(string& dependent_var
     return dependency_formula;
 }
 
-void FormulaDependencies::build_prime_synt_instance() {
+void FormulaAlgorithm::build_prime_synt_instance() {
     const vector<string>& input_vars = m_synt_instance.get_input_vars();
     const vector<string>& output_vars = m_synt_instance.get_output_vars();
 

@@ -1,8 +1,8 @@
 #include <iostream>
 #include <vector>
 
-#include "formula_dependencies.h"
-#include "automaton_dependencies.h"
+#include "formula_algorithm.h"
+#include "automaton_algorithm.h"
 #include "utils.h"
 #include "synt_instance.h"
 #include "synt_measure.h"
@@ -46,7 +46,7 @@ int main(int argc, const char* argv[]) {
         verbose_out << "Searching Dependencies By Formula Definition..." << endl;
 
         vector<string> formula_dependent_variables, formula_independent_variables;
-        FormulaDependencies formula_dependencies(synt_instance);
+        FormulaAlgorithm formula_dependencies(synt_instance);
         formula_dependencies.find_dependencies(formula_dependent_variables, formula_independent_variables);
 
         verbose_out << "Formula Dependent Variables: " << formula_dependent_variables << endl;
@@ -58,7 +58,7 @@ int main(int argc, const char* argv[]) {
         verbose_out << "Searching Dependencies By Automaton Definition..." << endl;
 
         vector<string> automaton_dependent_variables, automaton_independent_variables;
-        AutomatonDependencies automaton_dependencies(synt_instance);
+        AutomatonAlgorithm automaton_dependencies(synt_instance);
         automaton_dependencies.find_dependencies(automaton_dependent_variables, automaton_independent_variables);
 
         verbose_out << "Automaton Dependent Variables: " << automaton_dependent_variables << endl;

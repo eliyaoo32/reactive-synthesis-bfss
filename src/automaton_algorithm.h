@@ -19,7 +19,7 @@ bool areEdgesShareCommonVariable(spot::twa_graph::edge_storage_t& e1, spot::twa_
 
 bool isDependentByConditions(int dependent_var, std::vector<int>& dependency_vars, const bdd& cond1, const bdd& cond2, spot::twa_graph_ptr& aut);
 
-class AutomatonDependencies {
+class AutomatonAlgorithm {
 private:
     SyntInstance &m_synt_instance;
 
@@ -29,7 +29,7 @@ private:
     static bool isVariableDependentByPairEdge(std::string& dependent_var, std::vector<std::string>& dependency_vars,
                                        const PairEdges& edges, spot::twa_graph_ptr& aut);
 public:
-    explicit AutomatonDependencies(SyntInstance &synt_instance)
+    explicit AutomatonAlgorithm(SyntInstance &synt_instance)
         : m_synt_instance(synt_instance) {};
 
     void find_dependencies(std::vector<std::string> &dependent_variables,

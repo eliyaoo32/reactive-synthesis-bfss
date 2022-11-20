@@ -1,11 +1,11 @@
 #include <string>
 
-#include "automaton_dependencies.h"
+#include "automaton_algorithm.h"
 
 using namespace std;
 
-void AutomatonDependencies::find_dependencies(std::vector<std::string> &dependent_variables,
-                                              std::vector<std::string> &independent_variables) {
+void AutomatonAlgorithm::find_dependencies(std::vector<std::string> &dependent_variables,
+                                           std::vector<std::string> &independent_variables) {
     auto automaton = m_synt_instance.build_buchi_automaton(true);
 
     // Find PairStates
@@ -24,7 +24,7 @@ void AutomatonDependencies::find_dependencies(std::vector<std::string> &dependen
         std::copy(independent_variables.begin(), independent_variables.end(), std::back_inserter(dependency_set));
 
         // Check if candidates variable is dependent
-        if (AutomatonDependencies::is_variable_dependent(dependent_var, dependency_set, compatibleStates, automaton)) {
+        if (AutomatonAlgorithm::is_variable_dependent(dependent_var, dependency_set, compatibleStates, automaton)) {
             dependent_variables.push_back(dependent_var);
         } else {
             independent_variables.push_back(dependent_var);
@@ -32,14 +32,14 @@ void AutomatonDependencies::find_dependencies(std::vector<std::string> &dependen
     }
 }
 
-bool AutomatonDependencies::is_variable_dependent(std::string dependent_var, vector<std::string> &dependency_vars,
-                                                  vector<PairState> &pairStates, spot::twa_graph_ptr aut) {
+bool AutomatonAlgorithm::is_variable_dependent(std::string dependent_var, vector<std::string> &dependency_vars,
+                                               vector<PairState> &pairStates, spot::twa_graph_ptr aut) {
     // For each pair-state, Can we move to an accepting state with different value of dependent_var? If yes, then dependent_var is not dependent
     for(auto pairState : pairStates) {
         for(auto& t1 : aut->out(pairState.first)) {
             for(auto& t2 : aut->out(pairState.second)) {
                 PairEdges pair_edges = PairEdges(t1, t2);
-                if(!AutomatonDependencies::isVariableDependentByPairEdge(dependent_var, dependency_vars, pair_edges, aut)) {
+                if(!AutomatonAlgorithm::isVariableDependentByPairEdge(dependent_var, dependency_vars, pair_edges, aut)) {
                     return false;
                 }
             }
@@ -51,8 +51,8 @@ bool AutomatonDependencies::is_variable_dependent(std::string dependent_var, vec
 
 
 
-bool AutomatonDependencies::isVariableDependentByPairEdge(std::string& dependent_var, std::vector<std::string>& dependency_vars,
-                                                          const PairEdges& edges, spot::twa_graph_ptr& aut) {
+bool AutomatonAlgorithm::isVariableDependentByPairEdge(std::string& dependent_var, std::vector<std::string>& dependency_vars,
+                                                       const PairEdges& edges, spot::twa_graph_ptr& aut) {
     auto get_var_index = [&aut](const std::string& var) {
         // TODO: Check - should I cache the operator register_ap so I don't have to call it every time?
         return aut->register_ap(var);
