@@ -14,7 +14,7 @@ inline std::string get_prime_variable(const std::string &var) { return var + "_p
 
 void equal_to_primes_formula(spot::formula &formula, vector<string> &vars);
 
-class FormulaDependencies {
+class FormulaAlgorithm {
    private:
     SyntInstance &m_synt_instance;
     SyntInstance* m_prime_synt_instance;
@@ -28,11 +28,11 @@ class FormulaDependencies {
     void build_prime_synt_instance();
 
    public:
-    explicit FormulaDependencies(SyntInstance& synt_instance) : m_synt_instance(synt_instance) {
+    explicit FormulaAlgorithm(SyntInstance& synt_instance) : m_synt_instance(synt_instance) {
         build_prime_synt_instance();
     }
 
-    ~FormulaDependencies() {
+    ~FormulaAlgorithm() {
         delete m_prime_synt_instance;
     }
 
