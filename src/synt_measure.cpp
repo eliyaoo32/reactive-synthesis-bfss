@@ -1,33 +1,22 @@
 #include "synt_measure.h"
 
-void SyntMeasures::end_testing_variable(bool is_dependent) {
-    m_variable_test_time.end();
+void SyntMeasures::get_json_object(json::object& obj) const {
+    // General information
+    obj["total_time"] = this->m_total_time.time_elapsed();
 
-    m_tested_variables.push_back({
-         *currently_testing_var,
-         m_variable_test_time.get_duration(),
-         is_dependent
-     });
-    delete currently_testing_var;
-}
-
-void SyntMeasures::start_testing_variable(string& var) {
-    delete currently_testing_var;
-
-    m_variable_test_time.start();
-    currently_testing_var = new string(var);
-}
-
-ostream& operator<<(ostream& os, const SyntMeasures& sm) {
-    json::object obj;
-    obj["total_time"] = sm.m_total_time.time_elapsed();
-    obj["is_automaton_built"] = sm.m_is_automaton_built;
-    if(sm.m_is_automaton_built) {
-        obj["automaton_build_duration"] = sm.m_aut_construct_time.get_duration();
+    // Automaton information
+    json::object automaton;
+    automaton["is_built"] = this->m_is_automaton_built;
+    if(this->m_is_automaton_built) {
+        automaton["build_duration"] = this->m_aut_construct_time.get_duration();
+        automaton["total_states"] = static_cast<int>(this->m_total_automaton_states);
+        automaton["state_based_status"] = this->m_automaton_state_based_status;
     }
+    obj.emplace("automaton", automaton);
 
+    // Dependency information
     json::array tested_vars;
-    for (const auto& var : sm.m_tested_variables) {
+    for (const auto& var : this->m_tested_variables) {
         json::object var_obj;
         var_obj["name"] = var.name;
         var_obj["duration"] = var.duration;
@@ -35,8 +24,28 @@ ostream& operator<<(ostream& os, const SyntMeasures& sm) {
 
         tested_vars.emplace_back(var_obj);
     }
-    obj["tested_variables"] = tested_vars;
+    obj.emplace("tested_variables", tested_vars);
+}
 
+void AutomatonSyntMeasure::get_json_object(json::object& obj) const {
+    SyntMeasures::get_json_object(obj);
+
+    json::object automaton_algo_obj;
+    automaton_algo_obj["type"] = "automaton";
+    automaton_algo_obj["total_pair_state"] = this->m_total_pair_states;
+    automaton_algo_obj["search_pair_state_duration"] = this->m_search_pair_states_time.get_duration();
+    automaton_algo_obj["pruned_state_based_status"] = this->m_prune_automaton_state_based_status;
+    automaton_algo_obj["prune_automaton_duration"] = this->m_prune_automaton_time.get_duration();
+    automaton_algo_obj["prune_total_states"] = this->m_total_pair_states;
+
+    obj.emplace("algorithm", automaton_algo_obj);
+}
+
+ostream& operator<<(ostream& os, const SyntMeasures& sm) {
+    json::object obj;
+    sm.get_json_object(obj);
     os << json::serialize(obj); // TODO: maybe os << obj is enough
+
     return os;
 }
+

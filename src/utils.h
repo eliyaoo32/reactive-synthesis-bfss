@@ -34,7 +34,7 @@ using Duration = long;
 class TimeMeasure {
 private:
     std::chrono::steady_clock::time_point m_start;
-    double m_total_duration;
+    Duration m_total_duration;
 public:
     TimeMeasure() : m_total_duration(-1) {}
 

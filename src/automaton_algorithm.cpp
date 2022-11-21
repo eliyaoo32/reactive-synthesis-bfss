@@ -1,4 +1,5 @@
 #include <string>
+#include <spot/twaalgos/sccfilter.hh>
 
 #include "automaton_algorithm.h"
 
@@ -6,17 +7,27 @@ using namespace std;
 
 void AutomatonAlgorithm::find_dependencies(std::vector<std::string> &dependent_variables,
                                            std::vector<std::string> &independent_variables) {
-    auto automaton = m_synt_instance.build_buchi_automaton(true);
+
+    m_measures.start_automaton_construct();
+    auto automaton = m_synt_instance.build_buchi_automaton();
+    m_measures.end_automaton_construct(automaton);
+
+    m_measures.start_prune_automaton();
+    automaton = spot::scc_filter_states(automaton); // Prune automaton
+    m_measures.end_prune_automaton(automaton);
 
     // Find PairStates
+    m_measures.start_search_pair_states();
     vector<PairState> compatibleStates;
     getAllCompatibleStates(compatibleStates, automaton);
+    m_measures.end_search_pair_states(static_cast<int>(compatibleStates.size()));
 
     // Find Dependencies
     std::vector<std::string> candidates(m_synt_instance.get_output_vars());
     while (!candidates.empty()) {
         std::string dependent_var = candidates.back();
         candidates.pop_back();
+        m_measures.start_testing_variable(dependent_var);
 
         // Build dependency set
         vector<string> dependency_set(m_synt_instance.get_input_vars());
@@ -26,8 +37,10 @@ void AutomatonAlgorithm::find_dependencies(std::vector<std::string> &dependent_v
         // Check if candidates variable is dependent
         if (AutomatonAlgorithm::is_variable_dependent(dependent_var, dependency_set, compatibleStates, automaton)) {
             dependent_variables.push_back(dependent_var);
+            m_measures.end_testing_variable(true);
         } else {
             independent_variables.push_back(dependent_var);
+            m_measures.end_testing_variable(false);
         }
     }
 }

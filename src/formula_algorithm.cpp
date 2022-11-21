@@ -18,6 +18,8 @@ void FormulaAlgorithm::find_dependencies(
         std::string dependent_var = candidates.back();
         candidates.pop_back();
 
+        m_measures.start_testing_variable(dependent_var);
+
         // Build dependency set: (Input + Candidates + Independents)
         vector<string> dependency_set = input_vars;
         std::copy(candidates.begin(), candidates.end(), std::back_inserter(dependency_set));
@@ -26,8 +28,10 @@ void FormulaAlgorithm::find_dependencies(
         // Check if candidates variable is dependent
         if (this->is_variable_dependent(dependent_var, dependency_set)) {
             dependent_variables.push_back(dependent_var);
+            m_measures.end_testing_variable(true);
         } else {
             independent_variables.push_back(dependent_var);
+            m_measures.end_testing_variable(false);
         }
     }
 }

@@ -8,6 +8,7 @@
 #include <spot/twaalgos/translate.hh>
 
 #include "synt_instance.h"
+#include "synt_measure.h"
 
 using PairState = std::pair<unsigned, unsigned>;
 
@@ -22,6 +23,7 @@ bool isDependentByConditions(int dependent_var, std::vector<int>& dependency_var
 class AutomatonAlgorithm {
 private:
     SyntInstance &m_synt_instance;
+    AutomatonSyntMeasure& m_measures;
 
     static bool is_variable_dependent(std::string dependent_var, std::vector<std::string> &dependency_vars,
                                std::vector<PairState> &pairStates, spot::twa_graph_ptr aut);
@@ -29,8 +31,8 @@ private:
     static bool isVariableDependentByPairEdge(std::string& dependent_var, std::vector<std::string>& dependency_vars,
                                        const PairEdges& edges, spot::twa_graph_ptr& aut);
 public:
-    explicit AutomatonAlgorithm(SyntInstance &synt_instance)
-        : m_synt_instance(synt_instance) {};
+    explicit AutomatonAlgorithm(SyntInstance &synt_instance, AutomatonSyntMeasure& measure) :
+        m_synt_instance(synt_instance), m_measures(measure) {}
 
     void find_dependencies(std::vector<std::string> &dependent_variables,
                            std::vector<std::string> &independent_variables);

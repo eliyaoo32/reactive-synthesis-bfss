@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "synt_instance.h"
+#include "synt_measure.h"
 
 using namespace std;
 
@@ -18,6 +19,7 @@ class FormulaAlgorithm {
    private:
     SyntInstance &m_synt_instance;
     SyntInstance* m_prime_synt_instance;
+    SyntMeasures& m_measures;
 
     bool is_variable_dependent(string &dependent_var,
                                vector<string> &dependency_vars);
@@ -28,7 +30,7 @@ class FormulaAlgorithm {
     void build_prime_synt_instance();
 
    public:
-    explicit FormulaAlgorithm(SyntInstance& synt_instance) : m_synt_instance(synt_instance) {
+    explicit FormulaAlgorithm(SyntInstance& synt_instance, SyntMeasures& measure) : m_synt_instance(synt_instance), m_measures(measure) {
         build_prime_synt_instance();
     }
 

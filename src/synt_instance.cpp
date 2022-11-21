@@ -2,7 +2,6 @@
 #include "synt_instance.h"
 #include "utils.h"
 
-#include <spot/twaalgos/sccfilter.hh>
 #include <iostream>
 #include <vector>
 #include <string>
@@ -29,7 +28,7 @@ std::string SyntInstance::get_formula_str() const {
     return formula_stream.str();
 }
 
-spot::twa_graph_ptr SyntInstance::build_buchi_automaton(bool prune) {
+spot::twa_graph_ptr SyntInstance::build_buchi_automaton() {
     if(m_formula == nullptr) {
         throw std::runtime_error("Formula is not built yet");
     }
@@ -38,11 +37,6 @@ spot::twa_graph_ptr SyntInstance::build_buchi_automaton(bool prune) {
     trans.set_type(spot::postprocessor::Buchi);
     trans.set_pref(spot::postprocessor::SBAcc);
     auto automaton = trans.run(m_formula);
-
-    if(prune) {
-        // Prune unreachable states
-        automaton = spot::scc_filter_states(automaton);
-    }
 
     return automaton;
 }

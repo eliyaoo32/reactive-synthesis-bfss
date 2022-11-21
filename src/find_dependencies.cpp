@@ -26,46 +26,49 @@ int main(int argc, const char* argv[]) {
     // Build Synthesis synt_instance
     verbose_out << "Initialize Synthesis Instance..." << endl;
     SyntInstance synt_instance(input_str, output_str);
-    SyntMeasures synt_measures(synt_instance);
-
     verbose_out << "Building Synthesis Formula..." << endl;
     synt_instance.build_formula(synt_formula);
-
-    verbose_out << "Building Synthesis Automaton..." << endl;
-    synt_measures.start_automaton_construct();
-    auto automaton = synt_instance.build_buchi_automaton();
-    synt_measures.finish_automaton_construct();
-    automaton = nullptr; // TODO: what's better? shared_ptr.reset() or shared_ptr = nullptr;
-
     verbose_out << "Synthesis Problem: " << endl;
     verbose_out << synt_instance << endl;
     verbose_out << "================================" << endl;
 
     // Find Dependencies by formula method
     if(selected_algorithm == Algorithm::FORMULA) {
+        SyntMeasures synt_measures(synt_instance);
+
+        verbose_out << "Building Synthesis Automaton..." << endl;
+        synt_measures.start_automaton_construct();
+        auto automaton = synt_instance.build_buchi_automaton();
+        string state_based_status = automaton->prop_state_acc().is_true() ? "true" : (automaton->prop_state_acc().is_false() ? "false" : "maybe");
+        synt_measures.end_automaton_construct(automaton);
+
         verbose_out << "Searching Dependencies By Formula Definition..." << endl;
 
         vector<string> formula_dependent_variables, formula_independent_variables;
-        FormulaAlgorithm formula_dependencies(synt_instance);
+        FormulaAlgorithm formula_dependencies(synt_instance, synt_measures);
         formula_dependencies.find_dependencies(formula_dependent_variables, formula_independent_variables);
 
         verbose_out << "Formula Dependent Variables: " << formula_dependent_variables << endl;
         verbose_out << "Formula Dependency Variables: " << formula_independent_variables << endl;
+
+        cout << synt_measures << endl;
     }
 
     // Find Dependencies by automaton method
     if(selected_algorithm == Algorithm::AUTOMATON) {
+        AutomatonSyntMeasure synt_measures(synt_instance);
+
         verbose_out << "Searching Dependencies By Automaton Definition..." << endl;
 
         vector<string> automaton_dependent_variables, automaton_independent_variables;
-        AutomatonAlgorithm automaton_dependencies(synt_instance);
+        AutomatonAlgorithm automaton_dependencies(synt_instance, synt_measures);
         automaton_dependencies.find_dependencies(automaton_dependent_variables, automaton_independent_variables);
 
         verbose_out << "Automaton Dependent Variables: " << automaton_dependent_variables << endl;
         verbose_out << "Automaton Dependency Variables: " << automaton_independent_variables << endl;
-    }
 
-    cout << synt_measures << endl;
+        cout << synt_measures << endl;
+    }
 
     return EXIT_SUCCESS;
 }

@@ -35,7 +35,7 @@ public:
 
     void build_formula(const std::string& formula);
 
-    spot::twa_graph_ptr build_buchi_automaton(bool prune=false);
+    spot::twa_graph_ptr build_buchi_automaton();
 
     [[nodiscard]] std::string get_formula_str() const;
 
