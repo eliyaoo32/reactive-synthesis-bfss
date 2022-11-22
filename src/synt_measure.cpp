@@ -21,9 +21,10 @@ void SyntMeasures::get_json_object(json::object& obj) const {
     // Automaton information
     json::object automaton;
     automaton["is_built"] = this->m_is_automaton_built;
-    if(this->m_is_automaton_built) {
+    if (this->m_is_automaton_built) {
         automaton["build_duration"] = this->m_aut_construct_time.get_duration();
-        automaton["total_states"] = static_cast<int>(this->m_total_automaton_states);
+        automaton["total_states"] =
+            static_cast<int>(this->m_total_automaton_states);
         automaton["state_based_status"] = this->m_automaton_state_based_status;
     }
     obj.emplace("automaton", automaton);
@@ -47,10 +48,14 @@ void AutomatonSyntMeasure::get_json_object(json::object& obj) const {
     json::object automaton_algo_obj;
     automaton_algo_obj["type"] = "automaton";
     automaton_algo_obj["total_pair_state"] = this->m_total_pair_states;
-    automaton_algo_obj["search_pair_state_duration"] = this->m_search_pair_states_time.get_duration();
-    automaton_algo_obj["pruned_state_based_status"] = this->m_prune_automaton_state_based_status;
-    automaton_algo_obj["prune_automaton_duration"] = this->m_prune_automaton_time.get_duration();
-    automaton_algo_obj["prune_total_states"] = static_cast<int>(this->m_total_prune_automaton_states);
+    automaton_algo_obj["search_pair_state_duration"] =
+        this->m_search_pair_states_time.get_duration();
+    automaton_algo_obj["pruned_state_based_status"] =
+        this->m_prune_automaton_state_based_status;
+    automaton_algo_obj["prune_automaton_duration"] =
+        this->m_prune_automaton_time.get_duration();
+    automaton_algo_obj["prune_total_states"] =
+        static_cast<int>(this->m_total_prune_automaton_states);
 
     obj.emplace("algorithm", automaton_algo_obj);
 }
@@ -58,8 +63,8 @@ void AutomatonSyntMeasure::get_json_object(json::object& obj) const {
 ostream& operator<<(ostream& os, const SyntMeasures& sm) {
     json::object obj;
     sm.get_json_object(obj);
+    // TODO: print prettifier
     os << json::serialize(obj);
 
     return os;
 }
-

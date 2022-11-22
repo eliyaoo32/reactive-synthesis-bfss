@@ -9,7 +9,7 @@ file_path = os.path.dirname(__file__)
 if file_path != "":
     os.chdir(file_path)
 
-BENCHMARK_OUTPUT_FILE_FORMAT = '{}.out'
+BENCHMARK_OUTPUT_FILE_FORMAT = '{}.json'
 
 
 def get_benchmark_output_path(benchmark_name, output_dir):
@@ -45,7 +45,7 @@ def get_all_benchmarks(output_dir, benchmarks_path, ignore_if_output_exists=True
     return benchmarks
 
 
-def process_benchmark(benchmark, timeout, output_dir, find_deps_tool):
+def process_benchmark(benchmark, timeout, output_dir, find_deps_tool, algorithm):
     benchmark_name = benchmark['benchmark_name']
     input_vars = benchmark['input_vars']
     output_vars = benchmark['output_vars']
@@ -58,13 +58,15 @@ def process_benchmark(benchmark, timeout, output_dir, find_deps_tool):
         'find_deps_cli_path': find_deps_tool,
         'formula': ltl_formula,
         'inputs': input_vars,
-        'outputs': output_vars
+        'outputs': output_vars,
+        'algorithm': algorithm
     }
-    find_deps_cli = 'timeout --signal=HUP {process_timeout} {find_deps_cli_path} "{formula}" "{inputs}" "{outputs}"'.format(
+    find_deps_cli = 'timeout --signal=HUP {process_timeout} {find_deps_cli_path} --formula="{formula}" --input="{inputs}" --output="{outputs}" --algo={algorithm}'.format(
         **config)
 
     with Popen(find_deps_cli, stdout=PIPE, stderr=PIPE, shell=True, preexec_fn=os.setsid) as process:
         result = process.communicate()[0].decode("utf-8")
+        
 
     print("Done Processing {}!".format(benchmark_name))
     with open(get_benchmark_output_path(benchmark_name, output_dir), "w+") as outfile:
@@ -98,6 +100,7 @@ def main():
         '--workers', help="Number of workers", type=int, default=16)
     args = parser.parse_args()
 
+    algorithm = 'automaton' # TODO: allow to select algorithm from CLI
     workers = args.workers
     benchmark_name_filter = args.name
     ignore_existing_output = not args.all
@@ -123,7 +126,7 @@ def main():
     Apply the algorithm
     """
     process_benchmark_args = [
-        (benchmark, benchmarks_timeout, output_dir, find_deps_tool)
+        (benchmark, benchmarks_timeout, output_dir, find_deps_tool, algorithm)
         for benchmark in benchmarks
     ]
     with Pool(workers) as pool:
