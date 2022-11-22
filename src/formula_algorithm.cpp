@@ -10,9 +10,9 @@
 void FormulaAlgorithm::find_dependencies(
     std::vector<std::string>& dependent_variables,
     std::vector<std::string>& independent_variables) {
-
-    std::vector<std::string> candidates( m_synt_instance.get_output_vars() );
-    const std::vector<std::string>& input_vars = m_synt_instance.get_input_vars();
+    std::vector<std::string> candidates(m_synt_instance.get_output_vars());
+    const std::vector<std::string>& input_vars =
+        m_synt_instance.get_input_vars();
 
     while (!candidates.empty()) {
         std::string dependent_var = candidates.back();
@@ -22,8 +22,10 @@ void FormulaAlgorithm::find_dependencies(
 
         // Build dependency set: (Input + Candidates + Independents)
         vector<string> dependency_set = input_vars;
-        std::copy(candidates.begin(), candidates.end(), std::back_inserter(dependency_set));
-        std::copy(independent_variables.begin(), independent_variables.end(), std::back_inserter(dependency_set));
+        std::copy(candidates.begin(), candidates.end(),
+                  std::back_inserter(dependency_set));
+        std::copy(independent_variables.begin(), independent_variables.end(),
+                  std::back_inserter(dependency_set));
 
         // Check if candidates variable is dependent
         if (this->is_variable_dependent(dependent_var, dependency_set)) {
@@ -36,8 +38,10 @@ void FormulaAlgorithm::find_dependencies(
     }
 }
 
-bool FormulaAlgorithm::is_variable_dependent(string& dependent_var, vector<string>& dependency_vars) {
-    spot::formula* dependency_formula = get_dependency_formula(dependent_var, dependency_vars);
+bool FormulaAlgorithm::is_variable_dependent(string& dependent_var,
+                                             vector<string>& dependency_vars) {
+    spot::formula* dependency_formula =
+        get_dependency_formula(dependent_var, dependency_vars);
 
     spot::translator trans;  // TODO: find best options for this translator
     spot::twa_graph_ptr automaton = trans.run(dependency_formula);
@@ -47,27 +51,27 @@ bool FormulaAlgorithm::is_variable_dependent(string& dependent_var, vector<strin
     return is_empty;
 }
 
-spot::formula* FormulaAlgorithm::get_dependency_formula(string& dependent_var, vector<string>& dependency_vars) {
+spot::formula* FormulaAlgorithm::get_dependency_formula(
+    string& dependent_var, vector<string>& dependency_vars) {
     if (dependent_var.empty() || dependency_vars.empty()) {
         throw std::invalid_argument(
             "Dependent and dependency are required to have at least 1 item to "
             "check for dependency");
     }
 
-    vector<string> dependent_vars = { dependent_var };
+    vector<string> dependent_vars = {dependent_var};
 
-    spot::formula dependencies_equals_to_prime_formula, dependents_equals_to_prime_formula;
-    equal_to_primes_formula(dependencies_equals_to_prime_formula, dependency_vars);
+    spot::formula dependencies_equals_to_prime_formula,
+        dependents_equals_to_prime_formula;
+    equal_to_primes_formula(dependencies_equals_to_prime_formula,
+                            dependency_vars);
     equal_to_primes_formula(dependents_equals_to_prime_formula, dependent_vars);
 
-    auto* dependency_formula = new spot::formula(
-        spot::formula::And({
-            *m_synt_instance.get_formula(),
-            *m_prime_synt_instance->get_formula(),
-            spot::formula::M(
-                spot::formula::Not(dependents_equals_to_prime_formula),
-              dependencies_equals_to_prime_formula)
-        }));
+    auto* dependency_formula = new spot::formula(spot::formula::And(
+        {*m_synt_instance.get_formula(), *m_prime_synt_instance->get_formula(),
+         spot::formula::M(
+             spot::formula::Not(dependents_equals_to_prime_formula),
+             dependencies_equals_to_prime_formula)}));
 
     return dependency_formula;
 }
@@ -84,7 +88,8 @@ void FormulaAlgorithm::build_prime_synt_instance() {
 
     std::transform(input_vars.begin(), input_vars.end(),
                    prime_input_vars.begin(), get_prime_variable);
-    std::transform(m_synt_instance.get_output_vars().begin(), m_synt_instance.get_output_vars().end(),
+    std::transform(m_synt_instance.get_output_vars().begin(),
+                   m_synt_instance.get_output_vars().end(),
                    prime_output_vars.begin(), get_prime_variable);
 
     // Build formula
@@ -96,7 +101,8 @@ void FormulaAlgorithm::build_prime_synt_instance() {
         boost::replace_all(prime_formula, var, get_prime_variable(var));
     }
 
-    this->m_prime_synt_instance = new SyntInstance(prime_input_vars, prime_output_vars);
+    this->m_prime_synt_instance =
+        new SyntInstance(prime_input_vars, prime_output_vars);
     this->m_prime_synt_instance->build_formula(prime_formula);
 }
 

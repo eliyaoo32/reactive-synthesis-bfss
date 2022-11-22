@@ -98,9 +98,10 @@ def main():
                         default=False, action='store_true')
     parser.add_argument(
         '--workers', help="Number of workers", type=int, default=16)
+    parser.add_argument('--algorithm', help="Algorithm to use", type=str, choices=['automaton', 'formula'], required=True)
     args = parser.parse_args()
 
-    algorithm = 'automaton' # TODO: allow to select algorithm from CLI
+    algorithm = args.algorithm
     workers = args.workers
     benchmark_name_filter = args.name
     ignore_existing_output = not args.all

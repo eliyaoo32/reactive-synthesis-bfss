@@ -63,7 +63,6 @@ void AutomatonSyntMeasure::get_json_object(json::object& obj) const {
 ostream& operator<<(ostream& os, const SyntMeasures& sm) {
     json::object obj;
     sm.get_json_object(obj);
-    // TODO: print prettifier
     os << json::serialize(obj);
 
     return os;
