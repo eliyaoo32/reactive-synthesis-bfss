@@ -2,6 +2,20 @@
 
 void SyntMeasures::get_json_object(json::object& obj) const {
     // General information
+    json::array output_vars;
+    std::transform(m_synt_instance.get_output_vars().begin(),
+                   m_synt_instance.get_output_vars().end(),
+                   std::back_inserter(output_vars),
+                   [](const std::string& var) { return json::string(var); });
+    json::array input_vars;
+    std::transform(m_synt_instance.get_input_vars().begin(),
+                   m_synt_instance.get_input_vars().end(),
+                   std::back_inserter(input_vars),
+                   [](const std::string& var) { return json::string(var); });
+
+    obj.emplace("output_vars", output_vars);
+    obj.emplace("input_vars", input_vars);
+    obj.emplace("formula", this->m_synt_instance.get_formula_str());
     obj["total_time"] = this->m_total_time.time_elapsed();
 
     // Automaton information
@@ -44,7 +58,7 @@ void AutomatonSyntMeasure::get_json_object(json::object& obj) const {
 ostream& operator<<(ostream& os, const SyntMeasures& sm) {
     json::object obj;
     sm.get_json_object(obj);
-    os << json::serialize(obj); // TODO: maybe os << obj is enough
+    os << json::serialize(obj);
 
     return os;
 }

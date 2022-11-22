@@ -130,6 +130,8 @@ fabric.properties
 ###################################################### Others
 .DS_Store
 outputs/**
+outputs
+build
 build/*
 benchmarks.csv
 benchmarks-errors.csv
