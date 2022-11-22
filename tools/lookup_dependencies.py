@@ -11,6 +11,7 @@ if file_path != "":
 
 BENCHMARK_OUTPUT_FILE_FORMAT = '{}.out'
 
+
 def get_benchmark_output_path(benchmark_name, output_dir):
     return os.path.join(output_dir, BENCHMARK_OUTPUT_FILE_FORMAT.format(benchmark_name))
 
@@ -44,33 +45,30 @@ def get_all_benchmarks(output_dir, benchmarks_path, ignore_if_output_exists=True
     return benchmarks
 
 
-def benchmark_processor(benchmark_timeout, output_dir, find_deps_tool):
-    def process_benchmark(benchmark):
-        benchmark_name = benchmark['benchmark_name']
-        input_vars = benchmark['input_vars']
-        output_vars = benchmark['output_vars']
-        ltl_formula = benchmark['ltl_formula']
+def process_benchmark(benchmark, timeout, output_dir, find_deps_tool):
+    benchmark_name = benchmark['benchmark_name']
+    input_vars = benchmark['input_vars']
+    output_vars = benchmark['output_vars']
+    ltl_formula = benchmark['ltl_formula']
 
-        print("Processing {}...".format(benchmark_name))
+    print("Processing {}...".format(benchmark_name))
 
-        config = {
-            'process_timeout': benchmark_timeout,
-            'find_deps_cli_path': find_deps_tool,
-            'formula': ltl_formula,
-            'inputs': input_vars,
-            'outputs': output_vars
-        }
-        find_deps_cli = 'timeout --signal=HUP {process_timeout} {find_deps_cli_path} "{formula}" "{inputs}" "{outputs}"'.format(
-            **config)
+    config = {
+        'process_timeout': timeout,
+        'find_deps_cli_path': find_deps_tool,
+        'formula': ltl_formula,
+        'inputs': input_vars,
+        'outputs': output_vars
+    }
+    find_deps_cli = 'timeout --signal=HUP {process_timeout} {find_deps_cli_path} "{formula}" "{inputs}" "{outputs}"'.format(
+        **config)
 
-        with Popen(find_deps_cli, stdout=PIPE, stderr=PIPE, shell=True, preexec_fn=os.setsid) as process:
-            result = process.communicate()[0].decode("utf-8")
+    with Popen(find_deps_cli, stdout=PIPE, stderr=PIPE, shell=True, preexec_fn=os.setsid) as process:
+        result = process.communicate()[0].decode("utf-8")
 
-        print("Done Processing {}!".format(benchmark_name))
-        with open(get_benchmark_output_path(benchmark_name, output_dir), "w+") as outfile:
-            outfile.write(result)
-
-    return process_benchmark
+    print("Done Processing {}!".format(benchmark_name))
+    with open(get_benchmark_output_path(benchmark_name, output_dir), "w+") as outfile:
+        outfile.write(result)
 
 
 def create_folder(folder_name):
@@ -100,11 +98,11 @@ def main():
         '--workers', help="Number of workers", type=int, default=16)
     args = parser.parse_args()
 
-    benchmark_timeout = args.timeout
     workers = args.workers
     benchmark_name_filter = args.name
     ignore_existing_output = not args.all
     benchmarks_path = args.benchs_list
+    benchmarks_timeout = args.timeout
     output_dir = args.output_dir
     find_deps_tool = args.find_deps_tool
 
@@ -124,12 +122,12 @@ def main():
     """
     Apply the algorithm
     """
-    process_benchmark = benchmark_processor(
-        benchmark_timeout, output_dir, find_deps_tool)
-    pool = Pool(processes=workers)
-    pool.map_async(process_benchmark, benchmarks)
-    pool.close()
-    pool.join()
+    process_benchmark_args = [
+        (benchmark, benchmarks_timeout, output_dir, find_deps_tool)
+        for benchmark in benchmarks
+    ]
+    with Pool(workers) as pool:
+        pool.starmap(process_benchmark, process_benchmark_args)
 
 
 if __name__ == "__main__":

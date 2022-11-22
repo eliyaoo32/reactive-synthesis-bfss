@@ -39,6 +39,7 @@
 
 # User-specific stuff
 src/.idea/**
+tools/.idea/**
 .idea/**
 
 # AWS User-specific
