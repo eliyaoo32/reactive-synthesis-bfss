@@ -70,3 +70,10 @@ apply the tool [find_dependencies](src/find_dependencies.cpp) on all the benchma
 The tool basically does the following:
 1. With multiprocessing, it runs `find_dependecies` in parallel on all the benchmarks.
 2. It writes the results to `outputs/` folder with the format `<benchmark_name>.out`.
+
+### Example 1:
+* Example of a lookup of dependencies.
+```bash
+python ./lookup_dependencies.py --timeout=10s --all --name="MusicAppSimple" --algorithm=formula --find_deps_tool="../build/find_dependencies" --benchs_list="../benchmarks.csv" --output_dir="../outputs"
+```
+
