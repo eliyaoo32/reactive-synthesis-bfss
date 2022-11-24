@@ -1,6 +1,5 @@
 #include <signal.h>
 
-#include <boost/json.hpp>
 #include <iostream>
 #include <vector>
 
@@ -60,18 +59,18 @@ int main(int argc, const char* argv[]) {
 
     try {
         if (selected_algorithm == Algorithm::FORMULA) {
-            SyntMeasures formula_measures(synt_instance);
-            synt_measures = &formula_measures;
+            auto* formula_measures = new  SyntMeasures(synt_instance);
+            synt_measures = formula_measures;
 
             verbose_out << "Building Synthesis Automaton..." << endl;
-            formula_measures.start_automaton_construct();
+            formula_measures->start_automaton_construct();
             auto automaton = synt_instance.build_buchi_automaton();
             string state_based_status =
                 automaton->prop_state_acc().is_true()
                     ? "true"
                     : (automaton->prop_state_acc().is_false() ? "false"
                                                               : "maybe");
-            formula_measures.end_automaton_construct(automaton);
+            formula_measures->end_automaton_construct(automaton);
 
             verbose_out << "Searching Dependencies By Formula Definition..."
                         << endl;
@@ -79,7 +78,7 @@ int main(int argc, const char* argv[]) {
             vector<string> formula_dependent_variables,
                 formula_independent_variables;
             FormulaAlgorithm formula_dependencies(synt_instance,
-                                                  formula_measures);
+                                                  *formula_measures);
             formula_dependencies.find_dependencies(
                 formula_dependent_variables, formula_independent_variables);
 
@@ -91,8 +90,8 @@ int main(int argc, const char* argv[]) {
 
         // Find Dependencies by automaton method
         if (selected_algorithm == Algorithm::AUTOMATON) {
-            AutomatonSyntMeasure automaton_measures(synt_instance);
-            synt_measures = &automaton_measures;
+            auto* automaton_measures = new AutomatonSyntMeasure(synt_instance);
+            synt_measures = automaton_measures;
 
             verbose_out << "Searching Dependencies By Automaton Definition..."
                         << endl;
@@ -100,7 +99,7 @@ int main(int argc, const char* argv[]) {
             vector<string> automaton_dependent_variables,
                 automaton_independent_variables;
             AutomatonAlgorithm automaton_dependencies(synt_instance,
-                                                      automaton_measures);
+                                                      *automaton_measures);
             automaton_dependencies.find_dependencies(
                 automaton_dependent_variables, automaton_independent_variables);
 
@@ -112,6 +111,7 @@ int main(int argc, const char* argv[]) {
 
         synt_measures->completed();
         cout << *synt_measures << endl;
+        delete synt_measures;
     } catch (const std::runtime_error& re) {
         std::cout << "Runtime error: " << re.what() << std::endl;
     } catch (const std::exception& ex) {
