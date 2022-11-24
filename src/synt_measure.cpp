@@ -46,7 +46,7 @@ void SyntMeasures::get_json_object(json::object& obj) const {
 
 void AutomatonSyntMeasure::get_json_object(json::object& obj) const {
     SyntMeasures::get_json_object(obj);
-    obj.emplace("algorithm_type", "automaton");
+    obj["algorithm_type"] = "automaton";
 
     json::object automaton_algo_obj;
     automaton_algo_obj["type"] = "automaton";
