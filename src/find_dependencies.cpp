@@ -110,6 +110,7 @@ int main(int argc, const char* argv[]) {
                         << automaton_independent_variables << endl;
         }
 
+        synt_measures->completed();
         cout << *synt_measures << endl;
     } catch (const std::runtime_error& re) {
         std::cout << "Runtime error: " << re.what() << std::endl;

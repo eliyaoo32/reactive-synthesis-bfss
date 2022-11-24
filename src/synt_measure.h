@@ -34,6 +34,7 @@ class SyntMeasures {
     // Generic data
     TimeMeasure m_total_time;
     SyntInstance& m_synt_instance;
+    bool m_is_completed;
 
    protected:
     virtual void get_json_object(json::object& obj) const;
@@ -43,7 +44,8 @@ class SyntMeasures {
         : m_is_automaton_built(false),
           currently_testing_var(nullptr),
           m_synt_instance(m_synt_instance),
-          m_total_automaton_states(-1) {
+          m_total_automaton_states(-1),
+          m_is_completed(false) {
         m_total_time.start();
     }
 
@@ -76,6 +78,8 @@ class SyntMeasures {
         delete currently_testing_var;
         currently_testing_var = nullptr;
     }
+
+    void completed() { m_is_completed = true; }
 
     friend ostream& operator<<(ostream& os, const SyntMeasures& sm);
 };

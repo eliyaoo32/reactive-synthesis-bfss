@@ -13,6 +13,7 @@ void SyntMeasures::get_json_object(json::object& obj) const {
                    std::back_inserter(input_vars),
                    [](const std::string& var) { return json::string(var); });
 
+    obj.emplace("is_completed", m_is_completed);
     obj.emplace("output_vars", output_vars);
     obj.emplace("input_vars", input_vars);
     obj.emplace("formula", this->m_synt_instance.get_formula_str());
