@@ -1,3 +1,6 @@
+#include <signal.h>
+
+#include <boost/json.hpp>
 #include <iostream>
 #include <vector>
 
@@ -10,8 +13,24 @@
 namespace Options = boost::program_options;
 using namespace std;
 
-// TODO: print dependencies on SIGHUP
-// TODO: handle and print error on KILLUP (such as OOM)
+static SyntMeasures* synt_measures = nullptr;
+
+// TODO: throw cerr and exit instead of cout
+void on_sighup(int args) {
+    try {
+        cout << *synt_measures << endl;
+    } catch (const std::runtime_error& re) {
+        std::cout << "Runtime error: " << re.what() << std::endl;
+    } catch (const std::exception& ex) {
+        std::cout << "Error occurred: " << ex.what() << std::endl;
+    } catch (...) {
+        std::cout << "Unknown failure occurred. Possible memory corruption"
+                  << std::endl;
+    }
+
+    exit(EXIT_SUCCESS);
+}
+
 int main(int argc, const char* argv[]) {
     string synt_formula, input_str, output_str;
     bool is_verbose;
@@ -36,55 +55,69 @@ int main(int argc, const char* argv[]) {
     verbose_out << synt_instance << endl;
     verbose_out << "================================" << endl;
 
-    // Find Dependencies by formula method
-    if (selected_algorithm == Algorithm::FORMULA) {
-        SyntMeasures synt_measures(synt_instance);
+    signal(SIGINT, on_sighup);
+    signal(SIGHUP, on_sighup);
 
-        verbose_out << "Building Synthesis Automaton..." << endl;
-        synt_measures.start_automaton_construct();
-        auto automaton = synt_instance.build_buchi_automaton();
-        string state_based_status =
-            automaton->prop_state_acc().is_true()
-                ? "true"
-                : (automaton->prop_state_acc().is_false() ? "false" : "maybe");
-        synt_measures.end_automaton_construct(automaton);
+    try {
+        if (selected_algorithm == Algorithm::FORMULA) {
+            SyntMeasures formula_measures(synt_instance);
+            synt_measures = &formula_measures;
 
-        verbose_out << "Searching Dependencies By Formula Definition..."
-                    << endl;
+            verbose_out << "Building Synthesis Automaton..." << endl;
+            formula_measures.start_automaton_construct();
+            auto automaton = synt_instance.build_buchi_automaton();
+            string state_based_status =
+                automaton->prop_state_acc().is_true()
+                    ? "true"
+                    : (automaton->prop_state_acc().is_false() ? "false"
+                                                              : "maybe");
+            formula_measures.end_automaton_construct(automaton);
 
-        vector<string> formula_dependent_variables,
-            formula_independent_variables;
-        FormulaAlgorithm formula_dependencies(synt_instance, synt_measures);
-        formula_dependencies.find_dependencies(formula_dependent_variables,
-                                               formula_independent_variables);
+            verbose_out << "Searching Dependencies By Formula Definition..."
+                        << endl;
 
-        verbose_out << "Formula Dependent Variables: "
-                    << formula_dependent_variables << endl;
-        verbose_out << "Formula Dependency Variables: "
-                    << formula_independent_variables << endl;
+            vector<string> formula_dependent_variables,
+                formula_independent_variables;
+            FormulaAlgorithm formula_dependencies(synt_instance,
+                                                  formula_measures);
+            formula_dependencies.find_dependencies(
+                formula_dependent_variables, formula_independent_variables);
 
-        cout << synt_measures << endl;
-    }
+            verbose_out << "Formula Dependent Variables: "
+                        << formula_dependent_variables << endl;
+            verbose_out << "Formula Dependency Variables: "
+                        << formula_independent_variables << endl;
+        }
 
-    // Find Dependencies by automaton method
-    if (selected_algorithm == Algorithm::AUTOMATON) {
-        AutomatonSyntMeasure synt_measures(synt_instance);
+        // Find Dependencies by automaton method
+        if (selected_algorithm == Algorithm::AUTOMATON) {
+            AutomatonSyntMeasure automaton_measures(synt_instance);
+            synt_measures = &automaton_measures;
 
-        verbose_out << "Searching Dependencies By Automaton Definition..."
-                    << endl;
+            verbose_out << "Searching Dependencies By Automaton Definition..."
+                        << endl;
 
-        vector<string> automaton_dependent_variables,
-            automaton_independent_variables;
-        AutomatonAlgorithm automaton_dependencies(synt_instance, synt_measures);
-        automaton_dependencies.find_dependencies(
-            automaton_dependent_variables, automaton_independent_variables);
+            vector<string> automaton_dependent_variables,
+                automaton_independent_variables;
+            AutomatonAlgorithm automaton_dependencies(synt_instance,
+                                                      automaton_measures);
+            automaton_dependencies.find_dependencies(
+                automaton_dependent_variables, automaton_independent_variables);
 
-        verbose_out << "Automaton Dependent Variables: "
-                    << automaton_dependent_variables << endl;
-        verbose_out << "Automaton Dependency Variables: "
-                    << automaton_independent_variables << endl;
+            verbose_out << "Automaton Dependent Variables: "
+                        << automaton_dependent_variables << endl;
+            verbose_out << "Automaton Dependency Variables: "
+                        << automaton_independent_variables << endl;
+        }
 
-        cout << synt_measures << endl;
+        cout << *synt_measures << endl;
+    } catch (const std::runtime_error& re) {
+        std::cout << "Runtime error: " << re.what() << std::endl;
+    } catch (const std::exception& ex) {
+        std::cout << "Error occurred: " << ex.what() << std::endl;
+    } catch (...) {
+        std::cout << "Unknown failure occurred. Possible memory corruption"
+                  << std::endl;
     }
 
     return EXIT_SUCCESS;

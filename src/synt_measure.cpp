@@ -48,12 +48,16 @@ void AutomatonSyntMeasure::get_json_object(json::object& obj) const {
     json::object automaton_algo_obj;
     automaton_algo_obj["type"] = "automaton";
     automaton_algo_obj["total_pair_state"] = this->m_total_pair_states;
-    automaton_algo_obj["search_pair_state_duration"] =
-        this->m_search_pair_states_time.get_duration();
+    if (this->m_search_pair_states_time.has_started()) {
+        automaton_algo_obj["search_pair_state_duration"] =
+            this->m_search_pair_states_time.get_duration();
+    }
+    if (this->m_prune_automaton_time.has_started()) {
+        automaton_algo_obj["prune_automaton_duration"] =
+            this->m_prune_automaton_time.get_duration();
+    }
     automaton_algo_obj["pruned_state_based_status"] =
         this->m_prune_automaton_state_based_status;
-    automaton_algo_obj["prune_automaton_duration"] =
-        this->m_prune_automaton_time.get_duration();
     automaton_algo_obj["prune_total_states"] =
         static_cast<int>(this->m_total_prune_automaton_states);
 

@@ -66,7 +66,6 @@ def process_benchmark(benchmark, timeout, output_dir, find_deps_tool, algorithm)
 
     with Popen(find_deps_cli, stdout=PIPE, stderr=PIPE, shell=True, preexec_fn=os.setsid) as process:
         result = process.communicate()[0].decode("utf-8")
-        
 
     print("Done Processing {}!".format(benchmark_name))
     with open(get_benchmark_output_path(benchmark_name, output_dir), "w+") as outfile:
@@ -98,7 +97,8 @@ def main():
                         default=False, action='store_true')
     parser.add_argument(
         '--workers', help="Number of workers", type=int, default=16)
-    parser.add_argument('--algorithm', help="Algorithm to use", type=str, choices=['automaton', 'formula'], required=True)
+    parser.add_argument('--algorithm', help="Algorithm to use",
+                        type=str, choices=['automaton', 'formula'], required=True)
     args = parser.parse_args()
 
     algorithm = args.algorithm
