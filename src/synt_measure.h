@@ -16,6 +16,7 @@ struct TestedVariable {
     string name;
     Duration duration;
     bool is_dependent;
+    vector<string> tested_dependency_set;
 };
 
 class SyntMeasures {
@@ -69,12 +70,13 @@ class SyntMeasures {
         currently_testing_var = new string(var);
     }
 
-    void end_testing_variable(bool is_dependent) {
+    void end_testing_variable(bool is_dependent,
+                              vector<string>& tested_dependency_set) {
         m_variable_test_time.end();
 
         m_tested_variables.push_back({*currently_testing_var,
                                       m_variable_test_time.get_duration(),
-                                      is_dependent});
+                                      is_dependent, tested_dependency_set});
         delete currently_testing_var;
         currently_testing_var = nullptr;
     }

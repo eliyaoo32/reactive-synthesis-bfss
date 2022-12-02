@@ -30,10 +30,10 @@ void FormulaAlgorithm::find_dependencies(
         // Check if candidates variable is dependent
         if (this->is_variable_dependent(dependent_var, dependency_set)) {
             dependent_variables.push_back(dependent_var);
-            m_measures.end_testing_variable(true);
+            m_measures.end_testing_variable(true, dependency_set);
         } else {
             independent_variables.push_back(dependent_var);
-            m_measures.end_testing_variable(false);
+            m_measures.end_testing_variable(false, dependency_set);
         }
     }
 }

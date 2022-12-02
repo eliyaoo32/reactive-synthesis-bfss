@@ -38,6 +38,9 @@ void SyntMeasures::get_json_object(json::object& obj) const {
         var_obj["name"] = var.name;
         var_obj["duration"] = var.duration;
         var_obj["is_dependent"] = var.is_dependent;
+        var_obj.emplace("tested_dependency_set",
+                        json::array(var.tested_dependency_set.begin(),
+                                    var.tested_dependency_set.end()));
 
         tested_vars.emplace_back(var_obj);
     }
