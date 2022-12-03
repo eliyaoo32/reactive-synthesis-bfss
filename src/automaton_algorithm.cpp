@@ -1,9 +1,18 @@
 #include "automaton_algorithm.h"
 
+#include <cmath>
 #include <spot/twaalgos/sccfilter.hh>
 #include <string>
 
 using namespace std;
+
+/* Due to bug in BuDDY where restricting variable is not allowed if this is the only
+ * variable left, this workaround is used. */
+bool can_restrict_variable(bdd& bd, int variable, bool restriction_value) {
+    bdd var_bdd = restriction_value ? bdd_ithvar(variable) : bdd_nithvar(variable);
+
+    return bdd_and(bd, var_bdd) != bddfalse;
+}
 
 void AutomatonAlgorithm::find_dependencies(
     std::vector<std::string>& dependent_variables,
@@ -20,8 +29,7 @@ void AutomatonAlgorithm::find_dependencies(
     m_measures.start_search_pair_states();
     vector<PairState> compatibleStates;
     getAllCompatibleStates(compatibleStates, automaton);
-    m_measures.end_search_pair_states(
-        static_cast<int>(compatibleStates.size()));
+    m_measures.end_search_pair_states(static_cast<int>(compatibleStates.size()));
 
     // Find Dependencies
     std::vector<std::string> candidates(m_synt_instance.get_output_vars());
@@ -38,8 +46,8 @@ void AutomatonAlgorithm::find_dependencies(
                   std::back_inserter(dependency_set));
 
         // Check if candidates variable is dependent
-        if (AutomatonAlgorithm::is_variable_dependent(
-                dependent_var, dependency_set, compatibleStates, automaton)) {
+        if (AutomatonAlgorithm::is_variable_dependent(dependent_var, dependency_set,
+                                                      compatibleStates, automaton)) {
             dependent_variables.push_back(dependent_var);
             m_measures.end_testing_variable(true, dependency_set);
         } else {
@@ -49,9 +57,10 @@ void AutomatonAlgorithm::find_dependencies(
     }
 }
 
-bool AutomatonAlgorithm::is_variable_dependent(
-    std::string dependent_var, vector<std::string>& dependency_vars,
-    vector<PairState>& pairStates, spot::twa_graph_ptr aut) {
+bool AutomatonAlgorithm::is_variable_dependent(std::string dependent_var,
+                                               vector<std::string>& dependency_vars,
+                                               vector<PairState>& pairStates,
+                                               spot::twa_graph_ptr aut) {
     // For each pair-state, Can we move to an accepting state with different
     // value of dependent_var? If yes, then dependent_var is not dependent
     for (auto pairState : pairStates) {
@@ -84,8 +93,8 @@ bool AutomatonAlgorithm::isVariableDependentByPairEdge(
                    std::back_inserter(dependency_vars_num), get_var_index);
 
     // Can the 1st edge be assigned to true and 2nd to false?
-    if (!isDependentByConditions(dependent_var_num, dependency_vars_num,
-                                 edges.first.cond, edges.second.cond, aut)) {
+    if (!isDependentByConditions(dependent_var_num, dependency_vars_num, edges.first.cond,
+                                 edges.second.cond, aut)) {
         return false;
     }
 
@@ -98,22 +107,39 @@ bool AutomatonAlgorithm::isVariableDependentByPairEdge(
     return true;
 }
 
-// If exists values to dependency variables such that with different values of
-// dependent variable the condition is satisfiable, then dependent variable is
-// not dependent
-bool isDependentByConditions(int dependent_var,
-                             std::vector<int>& dependency_vars,
+// To check if not exists a common assignment to cond1 and cond2 such that restricting
+// dependent_var=True is satisfable and restricting dependent_var=False in cond2 is
+// satisfable
+bool isDependentByConditions(int dependent_var, std::vector<int>& dependency_vars,
                              const bdd& cond1, const bdd& cond2,
                              spot::twa_graph_ptr& aut) {
-    bdd z = bdd_restrict(cond1, bdd_ithvar(dependent_var)) &
-            bdd_restrict(cond2, bdd_nithvar(dependent_var));
+    bdd z1(cond1);
+    bdd z2(cond2);
 
-    for (auto& var : dependency_vars) {
-        z = bdd_exist(z, bdd_ithvar(var));
+    // Trying all possible assignments to dependency vars
+    // TODO: check if can use the logical existing operator instead
+    int total_options = static_cast<int>(pow(2, dependency_vars.size()));
+    for (int set_option = 0; set_option <= total_options; set_option++) {
+        // Assign to the current option
+        int var_flag = 1;
+        for (auto var : dependency_vars) {
+            bool should_assign_true = (set_option & var_flag) != 0;
+            bdd var_assign = should_assign_true ? bdd_ithvar(var) : bdd_nithvar(var);
+            z1 = bdd_restrict(z1, var_assign);
+            z2 = bdd_restrict(z2, var_assign);
+
+            var_flag *= 2;
+        }
+
+        // Check if both z1 and z2 can restrict different values of dependent_var.
+        bool can_assign_z1_to_true = can_restrict_variable(z1, dependent_var, true);
+        bool can_assign_z2_to_false = can_restrict_variable(z2, dependent_var, false);
+        if (can_assign_z1_to_true && can_assign_z2_to_false) {
+            return false;
+        }
     }
 
-    bool is_dependent = z == bddfalse;
-    return is_dependent;
+    return true;
 }
 
 // Return a list of pair-states, where each pair-state are states which can be
@@ -125,8 +151,7 @@ void getAllCompatibleStates(std::vector<PairState>& pairStates,
 
     // Storing all neighbours of pair-states that need to be tested
     unordered_set<string> testedPairs;
-    std::vector<PairState> untestedPairStates = {
-        PairState(init_state, init_state)};
+    std::vector<PairState> untestedPairStates = {PairState(init_state, init_state)};
 
     // Testing all neighbours of pair-states that not tested yet.
     while (!untestedPairStates.empty()) {
@@ -135,13 +160,10 @@ void getAllCompatibleStates(std::vector<PairState>& pairStates,
 
         for (auto& t1 : aut->out(pairState.first)) {
             for (auto& t2 : aut->out(pairState.second)) {
-                string key1 =
-                    std::to_string(t1.dst) + "#" + std::to_string(t2.dst);
-                string key2 =
-                    std::to_string(t2.dst) + "#" + std::to_string(t1.dst);
-                bool isPairTested =
-                    testedPairs.find(key1) != testedPairs.end() ||
-                    testedPairs.find(key2) != testedPairs.end();
+                string key1 = std::to_string(t1.dst) + "#" + std::to_string(t2.dst);
+                string key2 = std::to_string(t2.dst) + "#" + std::to_string(t1.dst);
+                bool isPairTested = testedPairs.find(key1) != testedPairs.end() ||
+                                    testedPairs.find(key2) != testedPairs.end();
 
                 if (isPairTested) {
                     continue;
