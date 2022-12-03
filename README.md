@@ -44,6 +44,10 @@ find_dependencies [LTL_FORMULA] [INPUT_VARS] [OUTPUT_VARS]
 Where `[LTL_FORMULA]` is `LTL3BA`,  the variables `[INPUT_VARS] [OUTPUT_VARS]` are comma-seperated.
 The flag `--verbose` can be attached to follow the process in real-time.
 
+#### Build
+(TBD)
+`cmake -D CMAKE_PREFIX_PATH=$LD_LIBRARY_PATH`
+
 #### Example
 
 `find_dependencies "G(i_1 <-> (o_1)) & G(o_2)" "i_1" "o_1,o_2"`
