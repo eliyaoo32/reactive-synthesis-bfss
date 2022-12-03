@@ -20,8 +20,7 @@ void AutomatonAlgorithm::find_dependencies(
     m_measures.start_search_pair_states();
     vector<PairState> compatibleStates;
     getAllCompatibleStates(compatibleStates, automaton);
-    m_measures.end_search_pair_states(
-        static_cast<int>(compatibleStates.size()));
+    m_measures.end_search_pair_states(static_cast<int>(compatibleStates.size()));
 
     // Find Dependencies
     std::vector<std::string> candidates(m_synt_instance.get_output_vars());
@@ -38,8 +37,8 @@ void AutomatonAlgorithm::find_dependencies(
                   std::back_inserter(dependency_set));
 
         // Check if candidates variable is dependent
-        if (AutomatonAlgorithm::is_variable_dependent(
-                dependent_var, dependency_set, compatibleStates, automaton)) {
+        if (AutomatonAlgorithm::is_variable_dependent(dependent_var, dependency_set,
+                                                      compatibleStates, automaton)) {
             dependent_variables.push_back(dependent_var);
             m_measures.end_testing_variable(true, dependency_set);
         } else {
@@ -49,9 +48,10 @@ void AutomatonAlgorithm::find_dependencies(
     }
 }
 
-bool AutomatonAlgorithm::is_variable_dependent(
-    std::string dependent_var, vector<std::string>& dependency_vars,
-    vector<PairState>& pairStates, spot::twa_graph_ptr aut) {
+bool AutomatonAlgorithm::is_variable_dependent(std::string dependent_var,
+                                               vector<std::string>& dependency_vars,
+                                               vector<PairState>& pairStates,
+                                               spot::twa_graph_ptr aut) {
     // For each pair-state, Can we move to an accepting state with different
     // value of dependent_var? If yes, then dependent_var is not dependent
     for (auto pairState : pairStates) {
@@ -84,8 +84,8 @@ bool AutomatonAlgorithm::isVariableDependentByPairEdge(
                    std::back_inserter(dependency_vars_num), get_var_index);
 
     // Can the 1st edge be assigned to true and 2nd to false?
-    if (!isDependentByConditions(dependent_var_num, dependency_vars_num,
-                                 edges.first.cond, edges.second.cond, aut)) {
+    if (!isDependentByConditions(dependent_var_num, dependency_vars_num, edges.first.cond,
+                                 edges.second.cond, aut)) {
         return false;
     }
 
@@ -101,16 +101,27 @@ bool AutomatonAlgorithm::isVariableDependentByPairEdge(
 // If exists values to dependency variables such that with different values of
 // dependent variable the condition is satisfiable, then dependent variable is
 // not dependent
-bool isDependentByConditions(int dependent_var,
-                             std::vector<int>& dependency_vars,
+bool isDependentByConditions(int dependent_var, std::vector<int>& dependency_vars,
                              const bdd& cond1, const bdd& cond2,
                              spot::twa_graph_ptr& aut) {
-    bdd z = bdd_restrict(cond1, bdd_ithvar(dependent_var)) &
-            bdd_restrict(cond2, bdd_nithvar(dependent_var));
+    // bdd z = bdd_restrict(cond1, bdd_ithvar(dependent_var)) &
+    //         bdd_restrict(cond2, bdd_nithvar(dependent_var));
 
+    // for (auto& var : dependency_vars) {
+    //     z = bdd_exist(z, bdd_ithvar(var));
+    // }
+    // bool is_dependent = z == bddfalse;
+    // return is_dependent;
+
+    bdd z1 = cond1;
+    bdd z2 = cond2;
     for (auto& var : dependency_vars) {
-        z = bdd_exist(z, bdd_ithvar(var));
+        z1 = bdd_exist(z1, bdd_ithvar(var));
+        z2 = bdd_exist(z2, bdd_ithvar(var));
     }
+    z1 = bdd_restrict(z1, bdd_ithvar(dependent_var));
+    z2 = bdd_restrict(z2, bdd_nithvar(dependent_var));
+    bdd z = z1 & z2;
 
     bool is_dependent = z == bddfalse;
     return is_dependent;
@@ -125,8 +136,7 @@ void getAllCompatibleStates(std::vector<PairState>& pairStates,
 
     // Storing all neighbours of pair-states that need to be tested
     unordered_set<string> testedPairs;
-    std::vector<PairState> untestedPairStates = {
-        PairState(init_state, init_state)};
+    std::vector<PairState> untestedPairStates = {PairState(init_state, init_state)};
 
     // Testing all neighbours of pair-states that not tested yet.
     while (!untestedPairStates.empty()) {
@@ -135,13 +145,10 @@ void getAllCompatibleStates(std::vector<PairState>& pairStates,
 
         for (auto& t1 : aut->out(pairState.first)) {
             for (auto& t2 : aut->out(pairState.second)) {
-                string key1 =
-                    std::to_string(t1.dst) + "#" + std::to_string(t2.dst);
-                string key2 =
-                    std::to_string(t2.dst) + "#" + std::to_string(t1.dst);
-                bool isPairTested =
-                    testedPairs.find(key1) != testedPairs.end() ||
-                    testedPairs.find(key2) != testedPairs.end();
+                string key1 = std::to_string(t1.dst) + "#" + std::to_string(t2.dst);
+                string key2 = std::to_string(t2.dst) + "#" + std::to_string(t1.dst);
+                bool isPairTested = testedPairs.find(key1) != testedPairs.end() ||
+                                    testedPairs.find(key2) != testedPairs.end();
 
                 if (isPairTested) {
                     continue;

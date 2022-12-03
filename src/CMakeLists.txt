@@ -3,7 +3,13 @@ project(reactive-synthesis-bfss)
 
 set(CMAKE_CXX_STANDARD 17)
 
+################## Add playground
 FILE(GLOB find_dependencies_SRC *.cpp)
+list(REMOVE_ITEM find_dependencies_SRC ${CMAKE_CURRENT_SOURCE_DIR}/playground.cpp)
+FILE(GLOB playground_SRC *.cpp)
+list(REMOVE_ITEM playground_SRC ${CMAKE_CURRENT_SOURCE_DIR}/find_dependencies.cpp)
+add_executable(playground ${playground_SRC} )
+################## Remove playground
 
 add_executable(find_dependencies ${find_dependencies_SRC} )
 
@@ -49,3 +55,9 @@ target_link_libraries( find_dependencies spot )
 
 # TODO: find a way to include the spot headers and boost headers
 include_directories(/usr/local/include)
+
+############### Playground packages
+target_link_libraries( playground boost_options )
+target_link_libraries( playground boost_json )
+target_link_libraries( playground bddx )
+target_link_libraries( playground spot )
