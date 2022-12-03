@@ -8,6 +8,12 @@
 #include <vector>
 using namespace std;
 
+bool can_restrict_variable(bdd& bd, int variable, bool restriction_value) {
+    bdd var_bdd = restriction_value ? bdd_ithvar(variable) : bdd_nithvar(variable);
+
+    return bdd_and(bd, var_bdd) != bddfalse;
+}
+
 int main() {
     string formula =
         "((Fa & Fb & GFp0) | (FG!p0 & (G!a | G!b))) & G((p0 & !p1) | (!p0 & p1))";
@@ -35,12 +41,18 @@ int main() {
         }
     }
 
-    // for (auto& var : inputs) {
-    //     cout << var << " : " << automaton->register_ap(var) << endl;
-    // }
-    // for (auto& var : outputs) {
-    //     cout << var << " : " << automaton->register_ap(var) << endl;
-    // }
+    ////////////////////// Playing with BDD
+    int a_num = automaton->register_ap("a");
+    int p0_num = automaton->register_ap("p0");
+    int p1_num = automaton->register_ap("p1");
+    bdd formu = (bdd_ithvar(p0_num) & bdd_nithvar(p1_num)) |
+                (bdd_nithvar(p0_num) & bdd_ithvar(p1_num));
+
+    bdd z1 = bdd_restrict(formu, bdd_ithvar(p0_num));
+    cout << "Can restrict p1 to true? " << boolalpha
+         << can_restrict_variable(z1, p1_num, true) << endl;
+    cout << "Can restrict p0 to false? " << boolalpha
+         << can_restrict_variable(z1, p0_num, false) << endl;
 
     return EXIT_SUCCESS;
 }
