@@ -18,12 +18,10 @@ enum Algorithm { UNKNOWN = 0, FORMULA = 1, AUTOMATON = 2 };
 
 Algorithm string_to_algorithm(const std::string &str);
 
-bool parse_cli(int argc, const char *argv[], std::string &formula,
-               std::string &input, std::string &output, bool &should_verbose,
-               Algorithm &selected_algorithm);
+bool parse_cli(int argc, const char *argv[], std::string &formula, std::string &input,
+               std::string &output, bool &should_verbose, Algorithm &selected_algorithm);
 
-std::ostream &operator<<(std::ostream &out,
-                         const std::vector<std::string> &vec);
+std::ostream &operator<<(std::ostream &out, const std::vector<std::string> &vec);
 
 using Duration = long;
 
@@ -51,8 +49,7 @@ class TimeMeasure {
     [[nodiscard]] Duration time_elapsed() const {
         auto end = std::chrono::steady_clock::now();
         return static_cast<Duration>(
-            std::chrono::duration_cast<std::chrono::milliseconds>(end - m_start)
-                .count());
+            std::chrono::duration_cast<std::chrono::milliseconds>(end - m_start).count());
     }
 
     [[nodiscard]] Duration get_duration() const {

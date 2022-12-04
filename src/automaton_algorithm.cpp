@@ -4,15 +4,9 @@
 #include <spot/twaalgos/sccfilter.hh>
 #include <string>
 
+#include "utils.h"
+
 using namespace std;
-
-/* Due to bug in BuDDY where restricting variable is not allowed if this is the only
- * variable left, this workaround is used. */
-bool can_restrict_variable(bdd& bd, int variable, bool restriction_value) {
-    bdd var_bdd = restriction_value ? bdd_ithvar(variable) : bdd_nithvar(variable);
-
-    return bdd_and(bd, var_bdd) != bddfalse;
-}
 
 void AutomatonAlgorithm::find_dependencies(
     std::vector<std::string>& dependent_variables,
@@ -67,6 +61,7 @@ bool AutomatonAlgorithm::is_variable_dependent(std::string dependent_var,
         for (auto& t1 : aut->out(pairState.first)) {
             for (auto& t2 : aut->out(pairState.second)) {
                 PairEdges pair_edges = PairEdges(t1, t2);
+
                 if (!AutomatonAlgorithm::isVariableDependentByPairEdge(
                         dependent_var, dependency_vars, pair_edges, aut)) {
                     return false;
@@ -82,8 +77,10 @@ bool AutomatonAlgorithm::isVariableDependentByPairEdge(
     std::string& dependent_var, std::vector<std::string>& dependency_vars,
     const PairEdges& edges, spot::twa_graph_ptr& aut) {
     auto get_var_index = [&aut](const std::string& var) {
-        // TODO: Check - should I cache the operator register_ap so I don't have
-        // to call it every time?
+        /**
+         * TODO: Check - should I cache the operator register_ap so I don't have to call
+         * it every time?
+         */
         return aut->register_ap(var);
     };
     int dependent_var_num = get_var_index(dependent_var);
@@ -92,27 +89,27 @@ bool AutomatonAlgorithm::isVariableDependentByPairEdge(
     std::transform(dependency_vars.begin(), dependency_vars.end(),
                    std::back_inserter(dependency_vars_num), get_var_index);
 
-    // Can the 1st edge be assigned to true and 2nd to false?
+    /* TODO: check I check both directions in "isDependentByConditions"? In order save
+     * time Can the 1st edge be assigned to true and 2nd to false? */
     if (!isDependentByConditions(dependent_var_num, dependency_vars_num, edges.first.cond,
-                                 edges.second.cond, aut)) {
+                                 edges.second.cond)) {
         return false;
     }
-
-    // Can the 1st edge be assigned to false and 2nd to true?
     if (!isDependentByConditions(dependent_var_num, dependency_vars_num,
-                                 edges.second.cond, edges.first.cond, aut)) {
+                                 edges.second.cond, edges.first.cond)) {
         return false;
     }
 
     return true;
 }
 
-// To check if not exists a common assignment to cond1 and cond2 such that restricting
-// dependent_var=True is satisfable and restricting dependent_var=False in cond2 is
-// satisfable
+/**
+ * A Variable is dependent on the set X if for all pair-states (s1, s2), not exists an
+ * assignment 𝜋 of Y such that both s1(𝜋, X=True, ...), s2(𝜋, X=False, ...) are satified
+ * (Or vice-versa).
+ */
 bool isDependentByConditions(int dependent_var, std::vector<int>& dependency_vars,
-                             const bdd& cond1, const bdd& cond2,
-                             spot::twa_graph_ptr& aut) {
+                             const bdd& cond1, const bdd& cond2) {
     bdd z1(cond1);
     bdd z2(cond2);
 
@@ -162,6 +159,7 @@ void getAllCompatibleStates(std::vector<PairState>& pairStates,
             for (auto& t2 : aut->out(pairState.second)) {
                 string key1 = std::to_string(t1.dst) + "#" + std::to_string(t2.dst);
                 string key2 = std::to_string(t2.dst) + "#" + std::to_string(t1.dst);
+
                 bool isPairTested = testedPairs.find(key1) != testedPairs.end() ||
                                     testedPairs.find(key2) != testedPairs.end();
 
@@ -186,4 +184,10 @@ bool areEdgesShareCommonVariable(spot::twa_graph::edge_storage_t& e1,
     auto y = bdd_support(e2.cond);
 
     return x == y;
+}
+
+bool can_restrict_variable(bdd& bd, int variable, bool restriction_value) {
+    bdd var_bdd = restriction_value ? bdd_ithvar(variable) : bdd_nithvar(variable);
+
+    return bdd_and(bd, var_bdd) != bddfalse;
 }
