@@ -89,14 +89,8 @@ bool AutomatonAlgorithm::isVariableDependentByPairEdge(
     std::transform(dependency_vars.begin(), dependency_vars.end(),
                    std::back_inserter(dependency_vars_num), get_var_index);
 
-    /* TODO: check I check both directions in "isDependentByConditions"? In order save
-     * time Can the 1st edge be assigned to true and 2nd to false? */
     if (!isDependentByConditions(dependent_var_num, dependency_vars_num, edges.first.cond,
                                  edges.second.cond)) {
-        return false;
-    }
-    if (!isDependentByConditions(dependent_var_num, dependency_vars_num,
-                                 edges.second.cond, edges.first.cond)) {
         return false;
     }
 
@@ -132,6 +126,12 @@ bool isDependentByConditions(int dependent_var, std::vector<int>& dependency_var
         bool can_assign_z1_to_true = can_restrict_variable(z1, dependent_var, true);
         bool can_assign_z2_to_false = can_restrict_variable(z2, dependent_var, false);
         if (can_assign_z1_to_true && can_assign_z2_to_false) {
+            return false;
+        }
+
+        bool can_assign_z1_to_false = can_restrict_variable(z1, dependent_var, false);
+        bool can_assign_z2_to_true = can_restrict_variable(z2, dependent_var, true);
+        if (can_assign_z1_to_false && can_assign_z2_to_true) {
             return false;
         }
     }
