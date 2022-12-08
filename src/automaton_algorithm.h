@@ -31,16 +31,19 @@ class AutomatonAlgorithm {
    private:
     SyntInstance& m_synt_instance;
     AutomatonSyntMeasure& m_measures;
+    spot::twa_graph_ptr m_automaton;
 
-    static bool is_variable_dependent(std::string dependent_var,
-                                      std::vector<std::string>& dependency_vars,
-                                      std::vector<PairState>& pairStates,
-                                      spot::twa_graph_ptr aut);
+    bool is_variable_dependent(std::string dependent_var,
+                               std::vector<std::string>& dependency_vars,
+                               std::vector<PairState>& pairStates);
 
-    static bool isVariableDependentByPairEdge(std::string& dependent_var,
-                                              std::vector<std::string>& dependency_vars,
-                                              const PairEdges& edges,
-                                              spot::twa_graph_ptr& aut);
+    bool isVariableDependentByPairEdge(std::string& dependent_var,
+                                       std::vector<std::string>& dependency_vars,
+                                       const PairEdges& edges);
+
+    int get_variable_index(std::string& variable_name) {
+        return m_automaton->register_ap(variable_name);
+    }
 
    public:
     explicit AutomatonAlgorithm(SyntInstance& synt_instance,
