@@ -11,6 +11,7 @@ using namespace std;
 void AutomatonAlgorithm::find_dependencies(
     std::vector<std::string>& dependent_variables,
     std::vector<std::string>& independent_variables) {
+    // Build Automaton & BDD Cacher
     m_measures.start_automaton_construct();
     m_automaton = m_synt_instance.build_buchi_automaton();
     m_measures.end_automaton_construct(m_automaton);
@@ -18,6 +19,7 @@ void AutomatonAlgorithm::find_dependencies(
     m_measures.start_prune_automaton();
     m_automaton = spot::scc_filter_states(m_automaton);  // Prune m_automaton
     m_measures.end_prune_automaton(m_automaton);
+    m_bdd_cacher = new BDDCacher(m_automaton);
 
     // Find PairStates
     m_measures.start_search_pair_states();
@@ -54,6 +56,9 @@ void AutomatonAlgorithm::find_dependencies(
 bool AutomatonAlgorithm::is_variable_dependent(std::string dependent_var,
                                                vector<std::string>& dependency_vars,
                                                vector<PairState>& pairStates) {
+    /* TODO: move here all the var-nums of: dependent_var, dependency_vars,
+     * non_common_vars*/
+
     // For each pair-state, Can we move to an accepting state with different
     // value of dependent_var? If yes, then dependent_var is not dependent
     for (auto pairState : pairStates) {
@@ -61,7 +66,7 @@ bool AutomatonAlgorithm::is_variable_dependent(std::string dependent_var,
             for (auto& t2 : m_automaton->out(pairState.second)) {
                 PairEdges pair_edges = PairEdges(t1, t2);
 
-                if (!AutomatonAlgorithm::isVariableDependentByPairEdge(
+                if (!AutomatonAlgorithm::is_dependent_by_pair_edges(
                         dependent_var, dependency_vars, pair_edges)) {
                     return false;
                 }
@@ -72,64 +77,47 @@ bool AutomatonAlgorithm::is_variable_dependent(std::string dependent_var,
     return true;
 }
 
-bool AutomatonAlgorithm::isVariableDependentByPairEdge(
-    std::string& dependent_var, std::vector<std::string>& dependency_vars,
-    const PairEdges& edges) {
-    int dependent_var_num = this->get_variable_index(dependent_var);
-
-    vector<int> dependency_vars_num;
-    std::transform(dependency_vars.begin(), dependency_vars.end(),
-                   std::back_inserter(dependency_vars_num),
-                   [this](std::string& var) { return this->get_variable_index(var); });
-
-    if (!isDependentByConditions(dependent_var_num, dependency_vars_num, edges.first.cond,
-                                 edges.second.cond)) {
-        return false;
-    }
-
-    return true;
-}
-
 /**
- * A Variable is dependent on the set X if for all pair-states (s1, s2), not exists an
+ * A Variable X is dependent on the set Y if for all pair-states (s1, s2), not exists an
  * assignment 𝜋 of Y such that both s1(𝜋, X=True, ...), s2(𝜋, X=False, ...) are satified
- * (Or vice-versa).
+ * (And vice-versa).
+ *
+ * Mathematcially, [∃Y : s1(Y, X=True, Z) & s2(Y, X=False, Z')] is not satisfiable.
+ * and [∃Y : s1(Y, X=False, Z) & s2(Y, X=True, Z')] is not satisfiable as well.
+ * Where Z are rest of variables.
  */
-bool isDependentByConditions(int dependent_var, std::vector<int>& dependency_vars,
-                             const bdd& cond1, const bdd& cond2) {
-    bdd z1(cond1);
-    bdd z2(cond2);
+bool AutomatonAlgorithm::is_dependent_by_pair_edges(string& dependent_var,
+                                                    vector<string>& dependency_vars,
+                                                    const PairEdges& edges) {
+    bdd z1(edges.first.cond);
+    bdd z2(edges.second.cond);
 
-    // Trying all possible assignments to dependency vars
-    // TODO: check if can use the logical existing operator instead
-    int total_options = static_cast<int>(pow(2, dependency_vars.size()));
-    for (int set_option = 0; set_option <= total_options; set_option++) {
-        // Assign to the current option
-        int var_flag = 1;
-        for (auto var : dependency_vars) {
-            bool should_assign_true = (set_option & var_flag) != 0;
-            bdd var_assign = should_assign_true ? bdd_ithvar(var) : bdd_nithvar(var);
-            z1 = bdd_restrict(z1, var_assign);
-            z2 = bdd_restrict(z2, var_assign);
+    // Replace rest of variables in z2 with prime variable.
+    vector<string> excluded_vars(dependency_vars);
+    excluded_vars.emplace_back(dependent_var);
 
-            var_flag *= 2;
-        }
+    vector<string> non_common_vars;
+    m_synt_instance.all_vars_exclude(non_common_vars, excluded_vars);
 
-        // Check if both z1 and z2 can restrict different values of dependent_var.
-        bool can_assign_z1_to_true = can_restrict_variable(z1, dependent_var, true);
-        bool can_assign_z2_to_false = can_restrict_variable(z2, dependent_var, false);
-        if (can_assign_z1_to_true && can_assign_z2_to_false) {
-            return false;
-        }
+    // TODO: Useful functions: bdd_newpair, bdd_freepair, bdd_setbddpair, bdd_setbddpairs
+    bddPair* pairs = bdd_newpair();
+    for (auto& var : non_common_vars) {
+        bdd_setpair(pairs, m_bdd_cacher->get_variable_index(var),
+                    m_bdd_cacher->get_prime_variable_index(var));
+    }
+    z2 = bdd_replace(z2, pairs);
 
-        bool can_assign_z1_to_false = can_restrict_variable(z1, dependent_var, false);
-        bool can_assign_z2_to_true = can_restrict_variable(z2, dependent_var, true);
-        if (can_assign_z1_to_false && can_assign_z2_to_true) {
-            return false;
-        }
+    // Restrict & Apply
+    // TODO: maybe I should use bdd_appex instead of bdd_restrict & bdd_exist
+    z1 = bdd_restrict(z1, bdd_ithvar(m_bdd_cacher->get_variable_index(dependent_var)));
+    z2 = bdd_restrict(z2, bdd_nithvar(m_bdd_cacher->get_variable_index(dependent_var)));
+    bdd z = z1 & z2;
+    for (auto& var : dependency_vars) {
+        z = bdd_exist(z, bdd_ithvar(m_bdd_cacher->get_variable_index(var)));
     }
 
-    return true;
+    bool is_unsat = z == bddfalse;
+    return is_unsat;
 }
 
 // Return a list of pair-states, where each pair-state are states which can be
