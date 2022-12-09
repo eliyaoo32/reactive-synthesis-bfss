@@ -121,12 +121,12 @@ bool AutomatonAlgorithm::is_dependent_by_pair_edges(int dependent_var,
     }
     z2 = bdd_replace(z2, pairs);
 
-    // TODO: Maybe use bdd_appex instead of bdd_restrict & bdd_exist
     bdd vars_exists = bddtrue;
     for (auto& var : dependency_vars) {
         vars_exists = vars_exists & bdd_ithvar(var);
     }
 
+    // Case 1: [∃Y : s1(Y, X=True, Z) & s2(Y, X=False, Z')] is unsat
     bdd cond1 =
         bdd_appex(bdd_restrict(z1, bdd_ithvar(dependent_var)),
                   bdd_restrict(z2, bdd_nithvar(dependent_var)), bddop_and, vars_exists);
@@ -136,7 +136,7 @@ bool AutomatonAlgorithm::is_dependent_by_pair_edges(int dependent_var,
         return false;
     }
 
-    // Case 2: [∃Y : s1(Y, X=False, Z) & s2(Y, X=True, Z')] is sat
+    // Case 2: [∃Y : s1(Y, X=False, Z) & s2(Y, X=True, Z')] is unsat
     bdd cond2 =
         bdd_appex(bdd_restrict(z1, bdd_nithvar(dependent_var)),
                   bdd_restrict(z2, bdd_ithvar(dependent_var)), bddop_and, vars_exists);
