@@ -40,8 +40,8 @@ class SyntInstance {
     }
 
     // Return all the variables exclude requested in "excluded"
-    void all_vars_exclude(std::vector<std::string>& dst,
-                          const std::vector<std::string>& exclude);
+    void all_vars_excluded(std::vector<std::string>& dst,
+                           const std::vector<std::string>& excluded);
 
     [[nodiscard]] const std::vector<std::string>& get_output_vars() const {
         return m_output_vars;

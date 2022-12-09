@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 
+#include "bdd_var_cacher.h"
 #include "synt_instance.h"
 #include "synt_measure.h"
 
@@ -19,49 +20,18 @@ using PairEdges =
  * variable left, this workaround is used. */
 bool can_restrict_variable(bdd& bd, int variable, bool restriction_value);
 
-void getAllCompatibleStates(std::vector<PairState>& pairStates,
-                            const spot::twa_graph_ptr& aut);
+/*
+Return all the states in automaton which are reachable by the same prefix.
+*/
+void get_all_compatible_states(std::vector<PairState>& pairStates,
+                               const spot::twa_graph_ptr& aut);
 
-bool areEdgesShareCommonVariable(spot::twa_graph::edge_storage_t& e1,
-                                 spot::twa_graph::edge_storage_t& e2);
+bool are_edges_shares_variable(spot::twa_graph::edge_storage_t& e1,
+                               spot::twa_graph::edge_storage_t& e2);
 
-class BDDCacher {
-   private:
-    int m_total_vars;
-    int m_prime_var_start;  // At what index of variable, the prime var starts
-    int m_prime_var_coefficient;
-    unordered_map<string, int> m_variable_index;
-    unordered_map<string, int> m_prime_variable_index;
-    spot::twa_graph_ptr m_automaton;
-
-   public:
-    BDDCacher(spot::twa_graph_ptr automaton)
-        : m_automaton(automaton), m_prime_var_coefficient(0) {
-        m_total_vars = automaton->ap().size();
-
-        // Register prime variables
-        m_prime_var_start =
-            automaton->get_dict()->register_anonymous_variables(m_total_vars, automaton);
-    }
-
-    int get_variable_index(std::string& variable_name) {
-        if (m_variable_index.find(variable_name) == m_variable_index.end()) {
-            m_variable_index[variable_name] = m_automaton->register_ap(variable_name);
-        }
-
-        return m_variable_index[variable_name];
-    }
-
-    int get_prime_variable_index(std::string& variable_name) {
-        if (m_prime_variable_index.find(variable_name) == m_prime_variable_index.end()) {
-            m_prime_variable_index[variable_name] =
-                m_prime_var_start + m_prime_var_coefficient;
-
-            m_prime_var_coefficient++;
-        }
-
-        return m_prime_variable_index[variable_name];
-    }
+struct VarIndexer {
+    int var_index{};
+    int prime_var_index{};
 };
 
 class AutomatonAlgorithm {
@@ -69,15 +39,17 @@ class AutomatonAlgorithm {
     SyntInstance& m_synt_instance;
     AutomatonSyntMeasure& m_measures;
     spot::twa_graph_ptr m_automaton;
-    BDDCacher* m_bdd_cacher;
+    BDDVarsCacher* m_bdd_cacher;
 
     bool is_variable_dependent(std::string dependent_var,
                                std::vector<std::string>& dependency_vars,
                                std::vector<PairState>& pairStates);
 
-    bool is_dependent_by_pair_edges(std::string& dependent_var,
-                                    std::vector<std::string>& dependency_vars,
+    bool is_dependent_by_pair_edges(int dependent_var, std::vector<int>& dependency_vars,
+                                    vector<VarIndexer>& reset_vars,
                                     const PairEdges& edges);
+
+    void init_automaton();
 
    public:
     explicit AutomatonAlgorithm(SyntInstance& synt_instance,

@@ -15,18 +15,17 @@ SyntInstance::SyntInstance(const std::string& input_str, const std::string& outp
 }
 
 void SyntInstance::build_all_vars() {
-    m_all_vars.resize(m_input_vars.size() + m_output_vars.size());
     for (std::string& var : boost::join(m_input_vars, m_output_vars)) {
         m_all_vars.push_back(var);
     }
 }
 
-void SyntInstance::all_vars_exclude(std::vector<std::string>& dst,
-                                    const std::vector<std::string>& exclude) {
+void SyntInstance::all_vars_excluded(std::vector<std::string>& dst,
+                                     const std::vector<std::string>& excluded) {
     dst.clear();
 
     for (const std::string& var : m_all_vars) {
-        if (std::find(exclude.begin(), exclude.end(), var) == exclude.end()) {
+        if (std::find(excluded.begin(), excluded.end(), var) == excluded.end()) {
             dst.push_back(var);
         }
     }
