@@ -23,8 +23,7 @@ void on_sighup(int args) {
     } catch (const std::exception& ex) {
         std::cout << "Error occurred: " << ex.what() << std::endl;
     } catch (...) {
-        std::cout << "Unknown failure occurred. Possible memory corruption"
-                  << std::endl;
+        std::cout << "Unknown failure occurred. Possible memory corruption" << std::endl;
     }
 
     exit(EXIT_SUCCESS);
@@ -35,9 +34,8 @@ int main(int argc, const char* argv[]) {
     bool is_verbose;
     Algorithm selected_algorithm;
 
-    int parsed_cli_status =
-        parse_cli(argc, argv, synt_formula, input_str, output_str, is_verbose,
-                  selected_algorithm);
+    int parsed_cli_status = parse_cli(argc, argv, synt_formula, input_str, output_str,
+                                      is_verbose, selected_algorithm);
     if (!parsed_cli_status) {
         return EXIT_FAILURE;
     }
@@ -59,7 +57,7 @@ int main(int argc, const char* argv[]) {
 
     try {
         if (selected_algorithm == Algorithm::FORMULA) {
-            auto* formula_measures = new  SyntMeasures(synt_instance);
+            auto* formula_measures = new SyntMeasures(synt_instance);
             synt_measures = formula_measures;
 
             verbose_out << "Building Synthesis Automaton..." << endl;
@@ -68,22 +66,18 @@ int main(int argc, const char* argv[]) {
             string state_based_status =
                 automaton->prop_state_acc().is_true()
                     ? "true"
-                    : (automaton->prop_state_acc().is_false() ? "false"
-                                                              : "maybe");
+                    : (automaton->prop_state_acc().is_false() ? "false" : "maybe");
             formula_measures->end_automaton_construct(automaton);
 
-            verbose_out << "Searching Dependencies By Formula Definition..."
+            verbose_out << "Searching Dependencies By Formula Definition..." << endl;
+
+            vector<string> formula_dependent_variables, formula_independent_variables;
+            FormulaAlgorithm formula_dependencies(synt_instance, *formula_measures);
+            formula_dependencies.find_dependencies(formula_dependent_variables,
+                                                   formula_independent_variables);
+
+            verbose_out << "Formula Dependent Variables: " << formula_dependent_variables
                         << endl;
-
-            vector<string> formula_dependent_variables,
-                formula_independent_variables;
-            FormulaAlgorithm formula_dependencies(synt_instance,
-                                                  *formula_measures);
-            formula_dependencies.find_dependencies(
-                formula_dependent_variables, formula_independent_variables);
-
-            verbose_out << "Formula Dependent Variables: "
-                        << formula_dependent_variables << endl;
             verbose_out << "Formula Dependency Variables: "
                         << formula_independent_variables << endl;
         }
@@ -93,15 +87,12 @@ int main(int argc, const char* argv[]) {
             auto* automaton_measures = new AutomatonSyntMeasure(synt_instance);
             synt_measures = automaton_measures;
 
-            verbose_out << "Searching Dependencies By Automaton Definition..."
-                        << endl;
+            verbose_out << "Searching Dependencies By Automaton Definition..." << endl;
 
-            vector<string> automaton_dependent_variables,
-                automaton_independent_variables;
-            AutomatonAlgorithm automaton_dependencies(synt_instance,
-                                                      *automaton_measures);
-            automaton_dependencies.find_dependencies(
-                automaton_dependent_variables, automaton_independent_variables);
+            vector<string> automaton_dependent_variables, automaton_independent_variables;
+            AutomatonAlgorithm automaton_dependencies(synt_instance, *automaton_measures);
+            automaton_dependencies.find_dependencies(automaton_dependent_variables,
+                                                     automaton_independent_variables);
 
             verbose_out << "Automaton Dependent Variables: "
                         << automaton_dependent_variables << endl;
@@ -117,8 +108,7 @@ int main(int argc, const char* argv[]) {
     } catch (const std::exception& ex) {
         std::cout << "Error occurred: " << ex.what() << std::endl;
     } catch (...) {
-        std::cout << "Unknown failure occurred. Possible memory corruption"
-                  << std::endl;
+        std::cout << "Unknown failure occurred. Possible memory corruption" << std::endl;
     }
 
     return EXIT_SUCCESS;
