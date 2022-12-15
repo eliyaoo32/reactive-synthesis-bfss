@@ -27,15 +27,18 @@ def process_benchmark(benchmark, timeout, output_dir, synt_tool, algorithm):
     else:
         raise Exception("Unknown tool {}".format(synt_tool))
 
-
     start_time = datetime.now()
     with Popen(cli_cmd, stdout=PIPE, stderr=PIPE, shell=True, preexec_fn=os.setsid) as process:
         process_communicate = process.communicate()
         result = process_communicate[0].decode(
             "utf-8") + process_communicate[1].decode("utf-8")
-    
+
     total_time = datetime.now() - start_time
-    result = "/* Total Duration: {} ms */\r\n".format(total_time.total_seconds() * 1000) + result
+    result_header = "/* Total Duration: {} ms */\r\n".format(
+        total_time.total_seconds() * 1000)
+    result_header = "/* Tool: {} ms */\r\n".format(synt_tool)
+    result_header = "/* Algorithm: {} ms */\r\n".format(algorithm)
+    result = result_header + result
 
     print("Done Processing {}!".format(benchmark_name))
     with open(get_benchmark_output_path(benchmark_name, output_dir), "w+") as outfile:
