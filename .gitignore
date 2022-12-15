@@ -139,3 +139,4 @@ submit
 results.json
 .vscode/
 src/cmake-build-debug/
+*.csv
