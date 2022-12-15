@@ -3,7 +3,13 @@ from subprocess import PIPE, Popen
 from multiprocessing import Pool
 from random import shuffle
 
-from lookup_dependencies import create_folder, get_all_benchmarks, get_benchmark_output_path
+from lookup_dependencies import create_folder, get_all_benchmarks
+
+BENCHMARK_OUTPUT_FILE_FORMAT = '{}.hoa'
+
+
+def get_benchmark_output_path(benchmark_name, output_dir):
+    return os.path.join(output_dir, BENCHMARK_OUTPUT_FILE_FORMAT.format(benchmark_name))
 
 
 def process_benchmark(benchmark, timeout, output_dir, synt_tool, algorithm):
@@ -21,7 +27,9 @@ def process_benchmark(benchmark, timeout, output_dir, synt_tool, algorithm):
         raise Exception("Unknown tool {}".format(synt_tool))
 
     with Popen(cli_cmd, stdout=PIPE, stderr=PIPE, shell=True, preexec_fn=os.setsid) as process:
-        result = process.communicate()[0].decode("utf-8")
+        process_communicate = process.communicate()
+        result = process_communicate[0].decode(
+            "utf-8") + process_communicate[1].decode("utf-8")
 
     print("Done Processing {}!".format(benchmark_name))
     with open(get_benchmark_output_path(benchmark_name, output_dir), "w+") as outfile:
