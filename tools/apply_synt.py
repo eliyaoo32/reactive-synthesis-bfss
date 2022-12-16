@@ -30,14 +30,15 @@ def process_benchmark(benchmark, timeout, output_dir, synt_tool, algorithm):
     start_time = datetime.now()
     with Popen(cli_cmd, stdout=PIPE, stderr=PIPE, shell=True, preexec_fn=os.setsid) as process:
         process_communicate = process.communicate()
-        result = process_communicate[0].decode(
-            "utf-8") + process_communicate[1].decode("utf-8")
+        cli_stdout = process_communicate[0].decode("utf-8")
+        cli_stderr = process_communicate[1].decode("utf-8")
+        result = cli_stdout + cli_stderr
 
-    total_time = datetime.now() - start_time
-    result_header = "/* Total Duration: {} ms */\r\n".format(
-        total_time.total_seconds() * 1000)
-    result_header = "/* Tool: {} ms */\r\n".format(synt_tool)
-    result_header = "/* Algorithm: {} ms */\r\n".format(algorithm)
+    total_duration = (datetime.now() - start_time).total_seconds() * 1000
+    result_header = "/* Total Duration: {} ms */\r\n".format(total_duration)
+    result_header += "/* Tool: {}*/\r\n".format(synt_tool)
+    result_header += "/* Algorithm: {} */\r\n".format(algorithm)
+
     result = result_header + result
 
     print("Done Processing {}!".format(benchmark_name))
