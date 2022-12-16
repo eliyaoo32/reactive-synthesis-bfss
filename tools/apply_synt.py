@@ -7,13 +7,15 @@ from random import shuffle
 from lookup_dependencies import create_folder, get_all_benchmarks
 
 BENCHMARK_OUTPUT_FILE_FORMAT = '{}.hoa'
+TOOLS = ['ltlsynt-sd', 'ltlsynt-ds',
+         'ltlsynt-lar.old', 'ltlsynt-lar', 'ltlsynt-ps']
 
 
 def get_benchmark_output_path(benchmark_name, output_dir):
     return os.path.join(output_dir, BENCHMARK_OUTPUT_FILE_FORMAT.format(benchmark_name))
 
 
-def process_benchmark(benchmark, timeout, output_dir, synt_tool, algorithm):
+def process_benchmark(benchmark, timeout, output_dir, synt_tool):
     benchmark_name = benchmark['benchmark_name']
     input_vars = benchmark['input_vars']
     output_vars = benchmark['output_vars']
@@ -21,12 +23,15 @@ def process_benchmark(benchmark, timeout, output_dir, synt_tool, algorithm):
 
     print("Processing {}...".format(benchmark_name))
 
-    if synt_tool == 'ltlsynt':
-        cli_cmd = 'timeout --signal=HUP {timeout} {synt_tool} --formula="{formula}" --ins="{inputs}" --outs="{outputs}" --algo={algo}'.format(
-            timeout=timeout, synt_tool=synt_tool, formula=ltl_formula, inputs=input_vars, outputs=output_vars, algo=algorithm)
+    # Find the cli command of the tool
+    if 'ltlsynt' in synt_tool:
+        _, algorithm = synt_tool.split('-')
+        cli_cmd = 'timeout --signal=HUP {timeout} ltlsynt --formula="{formula}" --ins="{inputs}" --outs="{outputs}" --algo={algo}'.format(
+            timeout=timeout, formula=ltl_formula, inputs=input_vars, outputs=output_vars, algo=algorithm)
     else:
         raise Exception("Unknown tool {}".format(synt_tool))
 
+    # Apply the CLI command
     start_time = datetime.now()
     with Popen(cli_cmd, stdout=PIPE, stderr=PIPE, shell=True, preexec_fn=os.setsid) as process:
         process_communicate = process.communicate()
@@ -34,11 +39,10 @@ def process_benchmark(benchmark, timeout, output_dir, synt_tool, algorithm):
         cli_stderr = process_communicate[1].decode("utf-8")
         result = cli_stdout + cli_stderr
 
+    # Write the results to output file
     total_duration = (datetime.now() - start_time).total_seconds() * 1000
     result_header = "/* Total Duration: {} ms */\r\n".format(total_duration)
-    result_header += "/* Tool: {}*/\r\n".format(synt_tool)
-    result_header += "/* Algorithm: {} */\r\n".format(algorithm)
-
+    result_header += "/* Tool: {} */\r\n".format(synt_tool)
     result = result_header + result
 
     print("Done Processing {}!".format(benchmark_name))
@@ -61,10 +65,8 @@ def main():
                         default=False, action='store_true')
     parser.add_argument(
         '--workers', help="Number of workers", type=int, default=16)
-    parser.add_argument('--tool', help="Algorithm to use",
-                        type=str, choices=['ltlsynt'], required=True)
-    parser.add_argument('--algorithm', help="Algorithm to use, passed directly to the tool",
-                        type=str, required=False)
+    parser.add_argument('--tool', help="Which ltl synt tool to use",
+                        type=str, choices=TOOLS, required=True)
     args = parser.parse_args()
 
     workers = args.workers
@@ -73,7 +75,6 @@ def main():
     benchmarks_path = args.benchs_list
     benchmarks_timeout = args.timeout
     output_dir = args.output_dir
-    algorithm = args.algorithm
     synt_tool = args.tool
 
     """
@@ -93,7 +94,7 @@ def main():
     Apply the algorithm
     """
     process_benchmark_args = [
-        (benchmark, benchmarks_timeout, output_dir, synt_tool, algorithm)
+        (benchmark, benchmarks_timeout, output_dir, synt_tool)
         for benchmark in benchmarks
     ]
     with Pool(workers) as pool:
