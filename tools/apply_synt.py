@@ -8,14 +8,14 @@ from lookup_dependencies import create_folder, get_all_benchmarks
 
 BENCHMARK_OUTPUT_FILE_FORMAT = '{}.hoa'
 TOOLS = ['ltlsynt-sd', 'ltlsynt-ds',
-         'ltlsynt-lar.old', 'ltlsynt-lar', 'ltlsynt-ps']
+         'ltlsynt-lar.old', 'ltlsynt-lar', 'ltlsynt-ps', 'bfss-synt']
 
 
 def get_benchmark_output_path(benchmark_name, output_dir):
     return os.path.join(output_dir, BENCHMARK_OUTPUT_FILE_FORMAT.format(benchmark_name))
 
 
-def process_benchmark(benchmark, timeout, output_dir, synt_tool):
+def process_benchmark(benchmark, timeout, output_dir, synt_tool, tool_path):
     benchmark_name = benchmark['benchmark_name']
     input_vars = benchmark['input_vars']
     output_vars = benchmark['output_vars']
@@ -28,6 +28,11 @@ def process_benchmark(benchmark, timeout, output_dir, synt_tool):
         _, algorithm = synt_tool.split('-')
         cli_cmd = 'timeout --signal=HUP {timeout} ltlsynt --formula="{formula}" --ins="{inputs}" --outs="{outputs}" --algo={algo}'.format(
             timeout=timeout, formula=ltl_formula, inputs=input_vars, outputs=output_vars, algo=algorithm)
+    elif synt_tool == 'bfss-synt':
+        cli_cmd = 'timeout --signal=HUP {timeout} {tool_path} --formula="{formula}" --input="{inputs}" --output="{outputs}" --algo=automaton'.format(
+            timeout=timeout, formula=ltl_formula, inputs=input_vars, outputs=output_vars,
+            tool_path=tool_path if tool_path != '' else 'bfss-synt'
+        )
     else:
         raise Exception("Unknown tool {}".format(synt_tool))
 
@@ -67,6 +72,8 @@ def main():
         '--workers', help="Number of workers", type=int, default=16)
     parser.add_argument('--tool', help="Which ltl synt tool to use",
                         type=str, choices=TOOLS, required=True)
+    parser.add_argument('--tool_path', help="A path to executable file of the tool",
+                        type=str, required=False, default='')
     args = parser.parse_args()
 
     workers = args.workers
@@ -75,6 +82,7 @@ def main():
     benchmarks_path = args.benchs_list
     benchmarks_timeout = args.timeout
     output_dir = args.output_dir
+    tool_path = args.tool_path
     synt_tool = args.tool
 
     """
@@ -94,7 +102,7 @@ def main():
     Apply the algorithm
     """
     process_benchmark_args = [
-        (benchmark, benchmarks_timeout, output_dir, synt_tool)
+        (benchmark, benchmarks_timeout, output_dir, synt_tool, tool_path)
         for benchmark in benchmarks
     ]
     with Pool(workers) as pool:
