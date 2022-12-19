@@ -9,8 +9,7 @@ void SyntMeasures::get_json_object(json::object& obj) const {
                    [](const std::string& var) { return json::string(var); });
     json::array input_vars;
     std::transform(m_synt_instance.get_input_vars().begin(),
-                   m_synt_instance.get_input_vars().end(),
-                   std::back_inserter(input_vars),
+                   m_synt_instance.get_input_vars().end(), std::back_inserter(input_vars),
                    [](const std::string& var) { return json::string(var); });
 
     obj.emplace("is_completed", m_is_completed);
@@ -25,8 +24,7 @@ void SyntMeasures::get_json_object(json::object& obj) const {
     automaton["is_built"] = this->m_is_automaton_built;
     if (this->m_is_automaton_built) {
         automaton["build_duration"] = this->m_aut_construct_time.get_duration();
-        automaton["total_states"] =
-            static_cast<int>(this->m_total_automaton_states);
+        automaton["total_states"] = static_cast<int>(this->m_total_automaton_states);
         automaton["state_based_status"] = this->m_automaton_state_based_status;
     }
     obj.emplace("automaton", automaton);
@@ -47,7 +45,7 @@ void SyntMeasures::get_json_object(json::object& obj) const {
     obj.emplace("tested_variables", tested_vars);
 }
 
-void AutomatonSyntMeasure::get_json_object(json::object& obj) const {
+void AutomatonFindDepsMeasure::get_json_object(json::object& obj) const {
     SyntMeasures::get_json_object(obj);
     obj["algorithm_type"] = "automaton";
 
@@ -68,6 +66,20 @@ void AutomatonSyntMeasure::get_json_object(json::object& obj) const {
         static_cast<int>(this->m_total_prune_automaton_states);
 
     obj.emplace("algorithm", automaton_algo_obj);
+}
+
+void AutomatonSyntMeasure::get_json_object(json::object& obj) const {
+    AutomatonFindDepsMeasure::get_json_object(obj);
+
+    json::object synthesis_process_obj;
+    synthesis_process_obj.emplace("remove_dependent_ap_duration",
+                                  m_remove_dependent_ap.get_duration());
+    synthesis_process_obj.emplace("split_2step_duration", m_split_2step.get_duration());
+    synthesis_process_obj.emplace("nba_to_dpa_duration", m_nba_to_dpa.get_duration());
+    synthesis_process_obj.emplace("solve_game_duration", m_solve_game.get_duration());
+    synthesis_process_obj.emplace("dpa_to_mealy_duration", m_dpa_to_mealy.get_duration());
+
+    obj.emplace("synthesis_process", synthesis_process_obj);
 }
 
 ostream& operator<<(ostream& os, const SyntMeasures& sm) {

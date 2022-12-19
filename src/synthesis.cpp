@@ -39,16 +39,10 @@ int main(int argc, const char* argv[]) {
         return EXIT_FAILURE;
     }
     SyntInstance synt_instance(input_str, output_str);
-    AutomatonFindDepsMeasure synt_measures(synt_instance);
+    AutomatonSyntMeasure synt_measures(synt_instance);
     vector<string> output_vars(synt_instance.get_output_vars());
 
-    spot::parsed_formula pf = spot::parse_infix_psl(synt_formula);
-    if (pf.format_errors(std::cerr)) {
-        throw std::runtime_error("Error parsing formula_str: " + synt_formula);
-    }
-    if (pf.f == nullptr) {
-        throw std::runtime_error("Formula is not built yet");
-    }
+    synt_instance.build_formula(synt_formula);
 
     /**
      * =================== Step 2: Creates NBA of the specification
@@ -64,13 +58,19 @@ int main(int argc, const char* argv[]) {
     extra_options.set_if_unset("tls-impl", 1);
     extra_options.set_if_unset("wdba-minimize", 2);
 
+    synt_measures.start_automaton_construct();
     translator trans(dict, &extra_options);
     trans.set_type(spot::postprocessor::Buchi);
     // TODO: Check why SBAacc adds more states to the mealy machine, consider removing it
     trans.set_pref(spot::postprocessor::SBAcc);
 
-    auto automaton = trans.run(pf.f);
+    auto automaton = trans.run(*synt_instance.get_formula());
+    synt_measures.end_automaton_construct(automaton);
+
+    synt_measures.start_prune_automaton();
     automaton = spot::scc_filter_states(automaton);  // Prune automaton
+    synt_measures.end_prune_automaton(automaton);
+
     auto tobdd = [&automaton](const std::string& ap_name) {
         return bdd_ithvar(automaton->register_ap(ap_name));
     };
@@ -84,6 +84,7 @@ int main(int argc, const char* argv[]) {
     automaton_dependencies.find_dependencies(dependent_variables, independent_variables);
 
     // =================== Step 4: Remove dependent variables from the NBA
+    synt_measures.start_remove_dependent_ap();
     bdd dependents = bddtrue;
     for (string& dep_var : dependent_variables) {
         dependents &= tobdd(dep_var);
@@ -99,10 +100,12 @@ int main(int argc, const char* argv[]) {
         int ap = automaton->register_ap(dep_var);
         automaton->unregister_ap(ap);
     }
+    synt_measures.end_remove_dependent_ap();
 
     /**
      * =================== Step 5: Build a game from the NBA
      */
+    synt_measures.start_split_2step();
     auto is_out = [&output_vars](const std::string& ao) -> bool {
         return std::find(output_vars.begin(), output_vars.end(), ao) != output_vars.end();
     };
@@ -113,6 +116,9 @@ int main(int argc, const char* argv[]) {
         }
     }
     auto splitted = split_2step(automaton, outs, true);
+    synt_measures.end_split_2step();
+
+    synt_measures.start_nba_to_dpa();
     // TODO: understand what's the function ntgba2dpa and how it works internally
     auto dpa = ntgba2dpa(splitted, gi.force_sbacc);
     // Transform an automaton into a parity game by propagating players.
@@ -120,16 +126,21 @@ int main(int argc, const char* argv[]) {
     // Merge states knows about players
     dpa->merge_states();
     set_synthesis_outputs(dpa, outs);
-    auto& arena = dpa;
+    synt_measures.end_nba_to_dpa();
 
     /**
      * =================== Step 6: Solve the game and print the strategy
      */
+    synt_measures.start_solve_game();
+    auto& arena = dpa;
     bool is_solved = spot::solve_game(arena, gi);
     if (!is_solved) {
         cout << "UNREALIZABLE" << endl;
         return EXIT_FAILURE;
     }
+    synt_measures.end_solve_game();
+
+    synt_measures.start_dpa_to_mealy();
     spot::mealy_like ml;
     ml.success = spot::mealy_like::realizability_code::REALIZABLE_REGULAR;
     ml.mealy_like = spot::solved_game_to_mealy(arena, gi);
@@ -137,6 +148,13 @@ int main(int argc, const char* argv[]) {
     bool should_split = false;
     // TODO: Check if the minimize lvl should be from synthesis_info
     simplify_mealy_here(ml.mealy_like, 5, should_split);
+    synt_measures.end_dpa_to_mealy();
+
+    synt_measures.completed();
+
+    cout << "/* Synthesis Measures: " << endl;
+    cout << synt_measures << endl;
+    cout << "*/" << endl;
     spot::print_hoa(cout, ml.mealy_like);
 }
 

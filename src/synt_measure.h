@@ -122,4 +122,32 @@ class AutomatonFindDepsMeasure : public SyntMeasures {
     }
 };
 
+class AutomatonSyntMeasure : public AutomatonFindDepsMeasure {
+   private:
+    TimeMeasure m_remove_dependent_ap;
+    TimeMeasure m_split_2step;
+    TimeMeasure m_nba_to_dpa;
+    TimeMeasure m_solve_game;
+    TimeMeasure m_dpa_to_mealy;
+
+   protected:
+    void get_json_object(json::object& obj) const override;
+
+   public:
+    explicit AutomatonSyntMeasure(SyntInstance& m_synt_instance)
+        : AutomatonFindDepsMeasure(m_synt_instance) {}
+
+    void start_remove_dependent_ap() { m_remove_dependent_ap.start(); }
+    void start_split_2step() { m_split_2step.start(); }
+    void start_nba_to_dpa() { m_nba_to_dpa.start(); }
+    void start_solve_game() { m_solve_game.start(); }
+    void start_dpa_to_mealy() { m_dpa_to_mealy.start(); }
+
+    void end_remove_dependent_ap() { m_remove_dependent_ap.end(); }
+    void end_split_2step() { m_split_2step.end(); }
+    void end_nba_to_dpa() { m_nba_to_dpa.end(); }
+    void end_solve_game() { m_solve_game.end(); }
+    void end_dpa_to_mealy() { m_dpa_to_mealy.end(); }
+};
+
 #endif  // REACTIVE_SYNTHESIS_BFSS_SYNT_MEASURE_H

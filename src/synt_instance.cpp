@@ -36,6 +36,9 @@ void SyntInstance::build_formula(const std::string& formula) {
     if (pf.format_errors(std::cerr)) {
         throw std::runtime_error("Error parsing formula_str: " + formula);
     }
+    if (pf.f == nullptr) {
+        throw std::runtime_error("Formula is not built yet");
+    }
 
     m_formula = new spot::formula(pf.f);
 }
