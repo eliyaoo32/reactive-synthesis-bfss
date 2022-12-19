@@ -38,7 +38,7 @@ struct VarIndexer {
 class AutomatonAlgorithm {
    private:
     SyntInstance& m_synt_instance;
-    AutomatonSyntMeasure& m_measures;
+    AutomatonFindDepsMeasure& m_measures;
     spot::twa_graph_ptr m_automaton;
     BDDVarsCacher* m_bdd_cacher;
 
@@ -54,7 +54,7 @@ class AutomatonAlgorithm {
 
    public:
     explicit AutomatonAlgorithm(SyntInstance& synt_instance,
-                                AutomatonSyntMeasure& measure, spot::twa_graph_ptr aut,
+                                AutomatonFindDepsMeasure& measure, spot::twa_graph_ptr aut,
                                 bool should_prune)
         : m_synt_instance(synt_instance), m_measures(measure), m_automaton(aut) {
         if (should_prune) {

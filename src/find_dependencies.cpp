@@ -85,7 +85,7 @@ int main(int argc, const char* argv[]) {
 
         // Find Dependencies by automaton method
         if (selected_algorithm == Algorithm::AUTOMATON) {
-            auto* automaton_measures = new AutomatonSyntMeasure(synt_instance);
+            auto* automaton_measures = new AutomatonFindDepsMeasure(synt_instance);
             synt_measures = automaton_measures;
 
             verbose_out << "Searching Dependencies By Automaton Definition..." << endl;

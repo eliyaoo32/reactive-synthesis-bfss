@@ -70,13 +70,12 @@ class SyntMeasures {
         currently_testing_var = new string(var);
     }
 
-    void end_testing_variable(bool is_dependent,
-                              vector<string>& tested_dependency_set) {
+    void end_testing_variable(bool is_dependent, vector<string>& tested_dependency_set) {
         m_variable_test_time.end();
 
         m_tested_variables.push_back({*currently_testing_var,
-                                      m_variable_test_time.get_duration(),
-                                      is_dependent, tested_dependency_set});
+                                      m_variable_test_time.get_duration(), is_dependent,
+                                      tested_dependency_set});
         delete currently_testing_var;
         currently_testing_var = nullptr;
     }
@@ -86,7 +85,7 @@ class SyntMeasures {
     friend ostream& operator<<(ostream& os, const SyntMeasures& sm);
 };
 
-class AutomatonSyntMeasure : public SyntMeasures {
+class AutomatonFindDepsMeasure : public SyntMeasures {
    private:
     TimeMeasure m_prune_automaton_time;
     string m_prune_automaton_state_based_status;
@@ -98,7 +97,7 @@ class AutomatonSyntMeasure : public SyntMeasures {
     void get_json_object(json::object& obj) const override;
 
    public:
-    explicit AutomatonSyntMeasure(SyntInstance& m_synt_instance)
+    explicit AutomatonFindDepsMeasure(SyntInstance& m_synt_instance)
         : SyntMeasures(m_synt_instance),
           m_total_pair_states(-1),
           m_total_prune_automaton_states(-1) {}
@@ -119,8 +118,7 @@ class AutomatonSyntMeasure : public SyntMeasures {
         m_prune_automaton_state_based_status =
             pruned_automaton->prop_state_acc().is_true()
                 ? "true"
-                : (pruned_automaton->prop_state_acc().is_false() ? "false"
-                                                                 : "maybe");
+                : (pruned_automaton->prop_state_acc().is_false() ? "false" : "maybe");
     }
 };
 

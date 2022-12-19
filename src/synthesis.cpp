@@ -24,7 +24,6 @@ using namespace std;
 using namespace spot;
 
 twa_graph_ptr ntgba2dpa(const twa_graph_ptr& aut, bool force_sbacc);
-void synthesis_buchi(const twa_graph_ptr& buchi, const bdd& outputs, bool force_sbacc);
 
 int main(int argc, const char* argv[]) {
     /**
@@ -40,7 +39,7 @@ int main(int argc, const char* argv[]) {
         return EXIT_FAILURE;
     }
     SyntInstance synt_instance(input_str, output_str);
-    AutomatonSyntMeasure synt_measures(synt_instance);
+    AutomatonFindDepsMeasure synt_measures(synt_instance);
     vector<string> output_vars(synt_instance.get_output_vars());
 
     spot::parsed_formula pf = spot::parse_infix_psl(synt_formula);
@@ -113,7 +112,6 @@ int main(int argc, const char* argv[]) {
             outs &= tobdd(aap.ap_name());
         }
     }
-    // TODO: understand this split_2step logic
     auto splitted = split_2step(automaton, outs, true);
     // TODO: understand what's the function ntgba2dpa and how it works internally
     auto dpa = ntgba2dpa(splitted, gi.force_sbacc);
@@ -157,11 +155,3 @@ twa_graph_ptr ntgba2dpa(const twa_graph_ptr& aut, bool force_sbacc) {
     assert(is_deterministic(dpa));
     return dpa;
 }
-
-/****
- *
- * LTLSynt usage examples:
- * ltl2dpa16 example:
- * ltlsynt --formula='((Fa & Fb & GFp0) | (FG!p0 & (G!a | G!b))) & G((p0 & !p1) | (!p0
- * &p1))' --outs='p0,p1' --algo=sd --ins='a,b,c' --verbose
- */
