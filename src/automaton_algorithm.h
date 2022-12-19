@@ -3,6 +3,7 @@
 
 #include <map>
 #include <spot/tl/parse.hh>
+#include <spot/twaalgos/sccfilter.hh>
 #include <spot/twaalgos/translate.hh>
 #include <string>
 #include <vector>

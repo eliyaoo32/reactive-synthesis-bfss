@@ -11,10 +11,12 @@ This file takes a Buchi automaton and synthesis it
 #include <spot/twaalgos/isdet.hh>
 #include <spot/twaalgos/mealy_machine.hh>
 #include <spot/twaalgos/sbacc.hh>
+#include <spot/twaalgos/sccfilter.hh>
 #include <spot/twaalgos/synthesis.hh>
 #include <spot/twaalgos/translate.hh>
 #include <vector>
 
+#include "automaton_algorithm.h"
 #include "synt_instance.h"
 #include "utils.h"
 
@@ -29,7 +31,6 @@ int main(int argc, const char* argv[]) {
      * =================== Step 1: Processing synthesis problem
      */
     string synt_formula, input_str, output_str;
-    vector<string> dependent_variables = {"p0"};
     bool is_verbose;
     Algorithm selected_algorithm;  // TODO: remove the selected algorithm
 
@@ -39,6 +40,7 @@ int main(int argc, const char* argv[]) {
         return EXIT_FAILURE;
     }
     SyntInstance synt_instance(input_str, output_str);
+    AutomatonSyntMeasure synt_measures(synt_instance);
     vector<string> output_vars(synt_instance.get_output_vars());
 
     spot::parsed_formula pf = spot::parse_infix_psl(synt_formula);
@@ -51,6 +53,7 @@ int main(int argc, const char* argv[]) {
 
     /**
      * =================== Step 2: Creates NBA of the specification
+     *                             (And prune redundent)
      */
     synthesis_info gi;
     gi.s = synthesis_info::algo::SPLIT_DET;
@@ -64,45 +67,54 @@ int main(int argc, const char* argv[]) {
 
     translator trans(dict, &extra_options);
     trans.set_type(spot::postprocessor::Buchi);
-    // TODO: SBAacc adds more states to the mealy machine, consider removing it
+    // TODO: Check why SBAacc adds more states to the mealy machine, consider removing it
     trans.set_pref(spot::postprocessor::SBAcc);
 
-    auto aut = trans.run(pf.f);
-    auto tobdd = [&aut](const std::string& ap_name) {
-        return bdd_ithvar(aut->register_ap(ap_name));
+    auto automaton = trans.run(pf.f);
+    automaton = spot::scc_filter_states(automaton);  // Prune automaton
+    auto tobdd = [&automaton](const std::string& ap_name) {
+        return bdd_ithvar(automaton->register_ap(ap_name));
     };
-    // ===================== Step 2.1: Remove dependent variables from the NBA
+
+    /**
+     * =================== Step 3: Find Dependent Variables
+     */
+    vector<string> dependent_variables, independent_variables;
+    AutomatonAlgorithm automaton_dependencies(synt_instance, synt_measures, automaton,
+                                              false);
+    automaton_dependencies.find_dependencies(dependent_variables, independent_variables);
+
+    // =================== Step 4: Remove dependent variables from the NBA
     bdd dependents = bddtrue;
     for (string& dep_var : dependent_variables) {
         dependents &= tobdd(dep_var);
     }
     // Apply exists operator on all edges
-    for (int i = 0; i < aut->num_states(); i++) {
-        for (auto& edge : aut->out(i)) {
+    for (int i = 0; i < automaton->num_states(); i++) {
+        for (auto& edge : automaton->out(i)) {
             edge.cond = bdd_exist(edge.cond, dependents);
         }
     }
     // Unregister dependent variables
     for (string& dep_var : dependent_variables) {
-        int ap = aut->register_ap(dep_var);
-        aut->unregister_ap(ap);
+        int ap = automaton->register_ap(dep_var);
+        automaton->unregister_ap(ap);
     }
 
     /**
-     * =================== Step 3: Build a game from the NBA
+     * =================== Step 5: Build a game from the NBA
      */
     auto is_out = [&output_vars](const std::string& ao) -> bool {
         return std::find(output_vars.begin(), output_vars.end(), ao) != output_vars.end();
     };
     bdd outs = bddtrue;
-    for (auto&& aap : aut->ap()) {
+    for (auto&& aap : automaton->ap()) {
         if (is_out(aap.ap_name())) {
             outs &= tobdd(aap.ap_name());
         }
     }
-
     // TODO: understand this split_2step logic
-    auto splitted = split_2step(aut, outs, true);
+    auto splitted = split_2step(automaton, outs, true);
     // TODO: understand what's the function ntgba2dpa and how it works internally
     auto dpa = ntgba2dpa(splitted, gi.force_sbacc);
     // Transform an automaton into a parity game by propagating players.
@@ -113,7 +125,7 @@ int main(int argc, const char* argv[]) {
     auto& arena = dpa;
 
     /**
-     * =================== Step 4: Solve the game and print the strategy
+     * =================== Step 6: Solve the game and print the strategy
      */
     bool is_solved = spot::solve_game(arena, gi);
     if (!is_solved) {
