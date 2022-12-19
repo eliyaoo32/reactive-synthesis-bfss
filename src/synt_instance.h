@@ -49,12 +49,14 @@ class SyntInstance {
 
     void build_formula(const std::string& formula);
 
-    spot::twa_graph_ptr build_buchi_automaton();
-
     [[nodiscard]] std::string get_formula_str() const;
 
     friend std::ostream& operator<<(std::ostream& out, const SyntInstance& instance);
+    
+    friend spot::twa_graph_ptr build_buchi_automaton(SyntInstance& synt_instance);
 };
+
+spot::twa_graph_ptr build_buchi_automaton(SyntInstance& synt_instance);
 
 std::ostream& operator<<(std::ostream& out, const SyntInstance& instance);
 

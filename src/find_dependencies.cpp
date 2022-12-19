@@ -1,6 +1,7 @@
 #include <signal.h>
 
 #include <iostream>
+#include <spot/twaalgos/sccfilter.hh>
 #include <vector>
 
 #include "automaton_algorithm.h"
@@ -62,7 +63,7 @@ int main(int argc, const char* argv[]) {
 
             verbose_out << "Building Synthesis Automaton..." << endl;
             formula_measures->start_automaton_construct();
-            auto automaton = synt_instance.build_buchi_automaton();
+            auto automaton = build_buchi_automaton(synt_instance);
             string state_based_status =
                 automaton->prop_state_acc().is_true()
                     ? "true"
@@ -89,8 +90,19 @@ int main(int argc, const char* argv[]) {
 
             verbose_out << "Searching Dependencies By Automaton Definition..." << endl;
 
+            // Building Instance Automaton
+            automaton_measures->start_automaton_construct();
+            auto automaton = build_buchi_automaton(synt_instance);
+            automaton_measures->end_automaton_construct(automaton);
+
+            automaton_measures->start_prune_automaton();
+            automaton = spot::scc_filter_states(automaton);  // Prune automaton
+            automaton_measures->end_prune_automaton(automaton);
+
+            // Search for depedent variables
             vector<string> automaton_dependent_variables, automaton_independent_variables;
-            AutomatonAlgorithm automaton_dependencies(synt_instance, *automaton_measures);
+            AutomatonAlgorithm automaton_dependencies(synt_instance, *automaton_measures,
+                                                      automaton, false);
             automaton_dependencies.find_dependencies(automaton_dependent_variables,
                                                      automaton_independent_variables);
 

@@ -9,23 +9,8 @@
 
 using namespace std;
 
-void AutomatonAlgorithm::init_automaton() {
-    // Build Automaton & BDD Cacher
-    m_measures.start_automaton_construct();
-    m_automaton = m_synt_instance.build_buchi_automaton();
-    m_measures.end_automaton_construct(m_automaton);
-
-    m_measures.start_prune_automaton();
-    m_automaton = spot::scc_filter_states(m_automaton);  // Prune m_automaton
-    m_measures.end_prune_automaton(m_automaton);
-
-    m_bdd_cacher = new BDDVarsCacher(m_automaton);
-}
-
 void AutomatonAlgorithm::find_dependencies(vector<string>& dependent_variables,
                                            vector<string>& independent_variables) {
-    init_automaton();
-
     // Find PairStates
     m_measures.start_search_pair_states();
     vector<PairState> compatibleStates;

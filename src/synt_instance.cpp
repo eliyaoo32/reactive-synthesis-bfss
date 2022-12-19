@@ -46,15 +46,15 @@ std::string SyntInstance::get_formula_str() const {
     return formula_stream.str();
 }
 
-spot::twa_graph_ptr SyntInstance::build_buchi_automaton() {
-    if (m_formula == nullptr) {
+spot::twa_graph_ptr build_buchi_automaton(SyntInstance& synt_instance) {
+    if (synt_instance.m_formula == nullptr) {
         throw std::runtime_error("Formula is not built yet");
     }
 
     spot::translator trans;
     trans.set_type(spot::postprocessor::Buchi);
     trans.set_pref(spot::postprocessor::SBAcc);
-    auto automaton = trans.run(m_formula);
+    auto automaton = trans.run(synt_instance.m_formula);
 
     return automaton;
 }

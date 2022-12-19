@@ -53,8 +53,16 @@ class AutomatonAlgorithm {
 
    public:
     explicit AutomatonAlgorithm(SyntInstance& synt_instance,
-                                AutomatonSyntMeasure& measure)
-        : m_synt_instance(synt_instance), m_measures(measure), m_bdd_cacher(nullptr) {}
+                                AutomatonSyntMeasure& measure, spot::twa_graph_ptr aut,
+                                bool should_prune)
+        : m_synt_instance(synt_instance), m_measures(measure), m_automaton(aut) {
+        if (should_prune) {
+            m_measures.start_prune_automaton();
+            m_automaton = spot::scc_filter_states(m_automaton);  // Prune m_automaton
+            m_measures.end_prune_automaton(m_automaton);
+        }
+        m_bdd_cacher = new BDDVarsCacher(m_automaton);
+    }
 
     ~AutomatonAlgorithm() { delete m_bdd_cacher; }
 
