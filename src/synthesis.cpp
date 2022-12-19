@@ -26,9 +26,10 @@ void synthesis_buchi(const twa_graph_ptr& buchi, const bdd& outputs, bool force_
 
 int main(int argc, const char* argv[]) {
     /**
-     * Processing synthesis problem
+     * =================== Step 1: Processing synthesis problem
      */
     string synt_formula, input_str, output_str;
+    vector<string> dependent_variables = {"p0"};
     bool is_verbose;
     Algorithm selected_algorithm;  // TODO: remove the selected algorithm
 
@@ -49,7 +50,7 @@ int main(int argc, const char* argv[]) {
     }
 
     /**
-     * Creates a game
+     * =================== Step 2: Creates NBA of the specification
      */
     synthesis_info gi;
     gi.s = synthesis_info::algo::SPLIT_DET;
@@ -62,10 +63,34 @@ int main(int argc, const char* argv[]) {
     extra_options.set_if_unset("wdba-minimize", 2);
 
     translator trans(dict, &extra_options);
+    trans.set_type(spot::postprocessor::Buchi);
+    // TODO: SBAacc adds more states to the mealy machine, consider removing it
+    trans.set_pref(spot::postprocessor::SBAcc);
+
     auto aut = trans.run(pf.f);
     auto tobdd = [&aut](const std::string& ap_name) {
         return bdd_ithvar(aut->register_ap(ap_name));
     };
+    // ===================== Step 2.1: Remove dependent variables from the NBA
+    bdd dependents = bddtrue;
+    for (string& dep_var : dependent_variables) {
+        dependents &= tobdd(dep_var);
+    }
+    // Apply exists operator on all edges
+    for (int i = 0; i < aut->num_states(); i++) {
+        for (auto& edge : aut->out(i)) {
+            edge.cond = bdd_exist(edge.cond, dependents);
+        }
+    }
+    // Unregister dependent variables
+    for (string& dep_var : dependent_variables) {
+        int ap = aut->register_ap(dep_var);
+        aut->unregister_ap(ap);
+    }
+
+    /**
+     * =================== Step 3: Build a game from the NBA
+     */
     auto is_out = [&output_vars](const std::string& ao) -> bool {
         return std::find(output_vars.begin(), output_vars.end(), ao) != output_vars.end();
     };
@@ -78,83 +103,31 @@ int main(int argc, const char* argv[]) {
 
     // TODO: understand this split_2step logic
     auto splitted = split_2step(aut, outs, true);
-
     // TODO: understand what's the function ntgba2dpa and how it works internally
     auto dpa = ntgba2dpa(splitted, gi.force_sbacc);
-
     // Transform an automaton into a parity game by propagating players.
     alternate_players(dpa);
-
     // Merge states knows about players
     dpa->merge_states();
     set_synthesis_outputs(dpa, outs);
-
     auto& arena = dpa;
 
     /**
-     * A Game solver, takes a game and creates a strategy
+     * =================== Step 4: Solve the game and print the strategy
      */
     bool is_solved = spot::solve_game(arena, gi);
     if (!is_solved) {
         cout << "UNREALIZABLE" << endl;
         return EXIT_FAILURE;
     }
-
     spot::mealy_like ml;
     ml.success = spot::mealy_like::realizability_code::REALIZABLE_REGULAR;
     ml.mealy_like = spot::solved_game_to_mealy(arena, gi);
     // TODO: check what is the should_split
     bool should_split = false;
+    // TODO: Check if the minimize lvl should be from synthesis_info
     simplify_mealy_here(ml.mealy_like, 5, should_split);
-
     spot::print_hoa(cout, ml.mealy_like);
-}
-
-/*
-    option_map opts;
-    opts.set_if_unset("simul", 0);
-    opts.set_if_unset("tls-impl", 1);
-    opts.set_if_unset("wdba-minimize", 2);
-
-    translator trans(&opts);
-    // trans.set_type(spot::postprocessor::Buchi);
-    // trans.set_pref(spot::postprocessor::SBAcc);
-    auto aut = trans.run(pf.f);
-
-    // Synthesis the buchi automaton
-    bool force_sbacc = false;
-    bdd bdd_outputs = bddtrue;
-    for (auto& out_var : synt_instance.get_output_vars()) {
-        bdd_outputs &= bdd_ithvar(aut->register_ap(out_var));
-    }
-
-    synthesis_buchi(aut, bdd_outputs, force_sbacc);
-*/
-
-void synthesis_buchi(const twa_graph_ptr& buchi, const bdd& outputs, bool force_sbacc) {
-    // TODO: check when we can remove the Buchi automaton of specification
-    // TODO: check what suppose to be the value of force sbacc
-
-    // Generate a DPA to be solved
-    auto splitted = split_2step(buchi, outputs, true);
-    twa_graph_ptr dpa = ntgba2dpa(splitted, force_sbacc);
-    alternate_players(dpa);
-    dpa->merge_states();
-    assert(dpa->get_named_prop<std::vector<bool>>("state-player") &&
-           "DPA has no \"state-player\"");
-    set_synthesis_outputs(dpa, outputs);
-
-    // Solve the DPA
-    bool is_game_solved = solve_game(dpa);
-    if (!is_game_solved) {
-        // TODO: define as UNREALIZABLE
-        cout << "UNREALIZABLE" << endl;
-        return;
-    }
-
-    auto mealy = solved_game_to_mealy(dpa);
-    simplify_mealy_here(mealy, 5, true);
-    print_hoa(cout, mealy);
 }
 
 // This code is taken from: spot/twaalgos/synthesis.cc
