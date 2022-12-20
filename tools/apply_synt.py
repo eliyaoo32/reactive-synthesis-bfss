@@ -26,7 +26,7 @@ def process_benchmark(benchmark, timeout, output_dir, synt_tool, tool_path):
     # Find the cli command of the tool
     if 'ltlsynt' in synt_tool:
         _, algorithm = synt_tool.split('-')
-        cli_cmd = 'timeout --signal=HUP {timeout} ltlsynt --formula="{formula}" --ins="{inputs}" --outs="{outputs}" --algo={algo}'.format(
+        cli_cmd = 'timeout --signal=HUP {timeout} ltlsynt --formula="{formula}" --ins="{inputs}" --outs="{outputs}" --algo={algo} --decompose=no'.format(
             timeout=timeout, formula=ltl_formula, inputs=input_vars, outputs=output_vars, algo=algorithm)
     elif synt_tool == 'bfss-synt':
         cli_cmd = 'timeout --signal=HUP {timeout} {tool_path} --formula="{formula}" --input="{inputs}" --output="{outputs}" --algo=automaton'.format(

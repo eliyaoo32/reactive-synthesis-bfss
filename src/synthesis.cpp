@@ -31,7 +31,8 @@ int main(int argc, const char* argv[]) {
      */
     string synt_formula, input_str, output_str;
     bool is_verbose;
-    Algorithm selected_algorithm;  // TODO: remove the selected algorithm
+    Algorithm selected_algorithm;    // TODO: remove the selected algorithm
+    int synthesis_minimize_lvl = 2;  // TODO: check what is the correct
 
     int parsed_cli_status = parse_cli(argc, argv, synt_formula, input_str, output_str,
                                       is_verbose, selected_algorithm);
@@ -50,13 +51,14 @@ int main(int argc, const char* argv[]) {
      */
     synthesis_info gi;
     gi.s = synthesis_info::algo::SPLIT_DET;
+    gi.minimize_lvl = synthesis_minimize_lvl;
 
     option_map& extra_options = gi.opt;
     const bdd_dict_ptr& dict = gi.dict;
 
     extra_options.set_if_unset("simul", 0);
     extra_options.set_if_unset("tls-impl", 1);
-    extra_options.set_if_unset("wdba-minimize", 2);
+    extra_options.set_if_unset("wdba-minimize", synthesis_minimize_lvl);
 
     synt_measures.start_automaton_construct();
     translator trans(dict, &extra_options);
@@ -146,8 +148,7 @@ int main(int argc, const char* argv[]) {
     ml.mealy_like = spot::solved_game_to_mealy(arena, gi);
     // TODO: check what is the should_split
     bool should_split = false;
-    // TODO: Check if the minimize lvl should be from synthesis_info
-    simplify_mealy_here(ml.mealy_like, 5, should_split);
+    simplify_mealy_here(ml.mealy_like, synthesis_minimize_lvl, should_split);
     synt_measures.end_dpa_to_mealy();
 
     synt_measures.completed();
