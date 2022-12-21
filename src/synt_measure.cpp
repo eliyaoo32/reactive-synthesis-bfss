@@ -77,7 +77,8 @@ void AutomatonSyntMeasure::get_json_object(json::object& obj) const {
     synthesis_process_obj.emplace("split_2step_duration", m_split_2step.get_duration());
     synthesis_process_obj.emplace("nba_to_dpa_duration", m_nba_to_dpa.get_duration());
     synthesis_process_obj.emplace("solve_game_duration", m_solve_game.get_duration());
-    synthesis_process_obj.emplace("dpa_to_mealy_duration", m_dpa_to_mealy.get_duration());
+    synthesis_process_obj.emplace("dpa_to_mealy_duration",
+                                  m_dpa_to_mealy.get_duration(false));
 
     obj.emplace("synthesis_process", synthesis_process_obj);
 }

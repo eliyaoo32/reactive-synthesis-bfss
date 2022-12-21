@@ -52,8 +52,8 @@ class TimeMeasure {
             std::chrono::duration_cast<std::chrono::milliseconds>(end - m_start).count());
     }
 
-    [[nodiscard]] Duration get_duration() const {
-        if (m_total_duration == -1) {
+    [[nodiscard]] Duration get_duration(bool validate_is_ended = true) const {
+        if (validate_is_ended && m_total_duration == -1) {
             throw std::runtime_error(
                 "TimeMeasure::get_total_duration() called before "
                 "TimeMeasure::end()");

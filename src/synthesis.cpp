@@ -136,11 +136,17 @@ int main(int argc, const char* argv[]) {
     synt_measures.start_solve_game();
     auto& arena = dpa;
     bool is_solved = spot::solve_game(arena, gi);
+    synt_measures.end_solve_game();
     if (!is_solved) {
+        synt_measures.completed();
+
+        cout << "/* Synthesis Measures: " << endl;
+        cout << synt_measures << endl;
+        cout << "*/" << endl;
         cout << "UNREALIZABLE" << endl;
+
         return EXIT_FAILURE;
     }
-    synt_measures.end_solve_game();
 
     synt_measures.start_dpa_to_mealy();
     spot::mealy_like ml;
@@ -152,10 +158,10 @@ int main(int argc, const char* argv[]) {
     synt_measures.end_dpa_to_mealy();
 
     synt_measures.completed();
-
     cout << "/* Synthesis Measures: " << endl;
     cout << synt_measures << endl;
     cout << "*/" << endl;
+
     spot::print_hoa(cout, ml.mealy_like);
 }
 
