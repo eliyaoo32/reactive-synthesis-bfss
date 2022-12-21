@@ -162,6 +162,7 @@ int main(int argc, const char* argv[]) {
     cout << synt_measures << endl;
     cout << "*/" << endl;
 
+    cout << "REALIZABLE" << endl;
     spot::print_hoa(cout, ml.mealy_like);
 }
 
