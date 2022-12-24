@@ -6,8 +6,6 @@ set(CMAKE_CXX_STANDARD 17)
 FILE(GLOB non_executable_SRC  ${PROJECT_SOURCE_DIR}/*.cpp ${PROJECT_SOURCE_DIR}/**/*.cpp ${PROJECT_SOURCE_DIR}/*.h ${PROJECT_SOURCE_DIR}/**/*.h)
 list(FILTER non_executable_SRC EXCLUDE REGEX "(.*)(find_dependencies|synthesis).cpp")
 
-message(STATUS "Non-executable source files: ${non_executable_SRC}")
-
 add_executable(find_dependencies ${non_executable_SRC} find_dependencies.cpp )
 add_executable(synthesis ${non_executable_SRC} synthesis.cpp )
 

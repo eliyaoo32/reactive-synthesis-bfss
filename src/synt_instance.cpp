@@ -33,6 +33,7 @@ void SyntInstance::all_vars_excluded(std::vector<std::string>& dst,
 
 void SyntInstance::build_formula(const std::string& formula) {
     spot::parsed_formula pf = spot::parse_infix_psl(formula);
+
     if (pf.format_errors(std::cerr)) {
         throw std::runtime_error("Error parsing formula_str: " + formula);
     }

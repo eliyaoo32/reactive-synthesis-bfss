@@ -34,33 +34,15 @@ class TimeMeasure {
    public:
     TimeMeasure() : m_total_duration(-1), m_has_started(false) {}
 
-    void start() {
-        m_start = std::chrono::steady_clock::now();
-        m_has_started = true;
-    }
+    void start();
 
     bool has_started() const { return m_has_started; }
 
-    Duration end() {
-        m_total_duration = time_elapsed();
-        return m_total_duration;
-    }
+    Duration end();
 
-    [[nodiscard]] Duration time_elapsed() const {
-        auto end = std::chrono::steady_clock::now();
-        return static_cast<Duration>(
-            std::chrono::duration_cast<std::chrono::milliseconds>(end - m_start).count());
-    }
+    [[nodiscard]] Duration time_elapsed() const;
 
-    [[nodiscard]] Duration get_duration(bool validate_is_ended = true) const {
-        if (validate_is_ended && m_total_duration == -1) {
-            throw std::runtime_error(
-                "TimeMeasure::get_total_duration() called before "
-                "TimeMeasure::end()");
-        }
-
-        return m_total_duration;
-    }
+    [[nodiscard]] Duration get_duration(bool validate_is_ended = true) const;
 };
 
 #endif
