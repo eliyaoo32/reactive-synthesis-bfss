@@ -39,11 +39,9 @@ int main(int argc, const char* argv[]) {
     if (!parsed_cli_status) {
         return EXIT_FAILURE;
     }
-    SyntInstance synt_instance(input_str, output_str);
+    SyntInstance synt_instance(input_str, output_str, synt_formula);
     AutomatonSyntMeasure synt_measures(synt_instance);
     vector<string> output_vars(synt_instance.get_output_vars());
-
-    synt_instance.build_formula(synt_formula);
 
     /**
      * =================== Step 2: Creates NBA of the specification
@@ -66,7 +64,7 @@ int main(int argc, const char* argv[]) {
     // TODO: Check why SBAacc adds more states to the mealy machine, consider removing it
     trans.set_pref(spot::postprocessor::SBAcc);
 
-    auto automaton = trans.run(*synt_instance.get_formula());
+    auto automaton = trans.run(construct_formula(synt_instance));
     synt_measures.end_automaton_construct(automaton);
 
     synt_measures.start_prune_automaton();
