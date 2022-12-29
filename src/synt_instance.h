@@ -18,46 +18,42 @@ class SyntInstance {
     std::vector<std::string> m_all_vars;
     std::vector<std::string> m_input_vars;
     std::vector<std::string> m_output_vars;
-    spot::formula* m_formula;
+    std::string m_formula;
 
     void build_all_vars();
 
    public:
-    SyntInstance(const std::string& input_str, const std::string& output_str);
-    SyntInstance(std::vector<std::string> inputs, std::vector<std::string> outputs)
-        : m_input_vars(std::move(inputs)),
-          m_output_vars(std::move(outputs)),
-          m_formula(nullptr) {
-        build_all_vars();
-    };
+    SyntInstance(const std::string& input_str, const std::string& output_str,
+                 const std::string& formula_str);
 
-    ~SyntInstance() { delete m_formula; }
-
-    [[nodiscard]] spot::formula* get_formula() const { return m_formula; }
+    SyntInstance(std::vector<std::string> inputs, std::vector<std::string> outputs,
+                 std::string& formula);
 
     [[nodiscard]] const std::vector<std::string>& get_input_vars() const {
         return m_input_vars;
+    }
+
+    [[nodiscard]] const std::vector<std::string>& get_output_vars() const {
+        return m_output_vars;
     }
 
     // Return all the variables exclude requested in "excluded"
     void all_vars_excluded(std::vector<std::string>& dst,
                            const std::vector<std::string>& excluded);
 
-    [[nodiscard]] const std::vector<std::string>& get_output_vars() const {
-        return m_output_vars;
-    }
+    std::string& get_formula_str() { return m_formula; }
 
-    void build_formula(const std::string& formula);
+    friend std::ostream& operator<<(std::ostream& out, SyntInstance& instance);
 
-    [[nodiscard]] std::string get_formula_str() const;
+    friend spot::twa_graph_ptr construct_automaton(SyntInstance& synt_instance);
 
-    friend std::ostream& operator<<(std::ostream& out, const SyntInstance& instance);
-    
-    friend spot::twa_graph_ptr build_buchi_automaton(SyntInstance& synt_instance);
+    friend spot::formula construct_formula(SyntInstance& synt_instance);
 };
 
-spot::twa_graph_ptr build_buchi_automaton(SyntInstance& synt_instance);
+spot::twa_graph_ptr construct_automaton(SyntInstance& synt_instance);
 
-std::ostream& operator<<(std::ostream& out, const SyntInstance& instance);
+spot::formula construct_formula(SyntInstance& synt_instance);
+
+std::ostream& operator<<(std::ostream& out, SyntInstance& instance);
 
 #endif  // REACTIVE_SYNTHESIS_BFSS_SYNT_INSTANCE_H

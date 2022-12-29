@@ -54,31 +54,11 @@ class SyntMeasures {
 
     void start_automaton_construct() { m_aut_construct_time.start(); }
 
-    void end_automaton_construct(spot::twa_graph_ptr& automaton) {
-        m_aut_construct_time.end();
-        m_is_automaton_built = true;
+    void end_automaton_construct(spot::twa_graph_ptr& automaton);
 
-        m_total_automaton_states = automaton->num_states();
-        m_automaton_state_based_status =
-            automaton->prop_state_acc().is_true()
-                ? "true"
-                : (automaton->prop_state_acc().is_false() ? "false" : "maybe");
-    }
+    void start_testing_variable(string& var);
 
-    void start_testing_variable(string& var) {
-        m_variable_test_time.start();
-        currently_testing_var = new string(var);
-    }
-
-    void end_testing_variable(bool is_dependent, vector<string>& tested_dependency_set) {
-        m_variable_test_time.end();
-
-        m_tested_variables.push_back({*currently_testing_var,
-                                      m_variable_test_time.get_duration(), is_dependent,
-                                      tested_dependency_set});
-        delete currently_testing_var;
-        currently_testing_var = nullptr;
-    }
+    void end_testing_variable(bool is_dependent, vector<string>& tested_dependency_set);
 
     void completed() { m_is_completed = true; }
 
@@ -102,24 +82,13 @@ class AutomatonFindDepsMeasure : public SyntMeasures {
           m_total_pair_states(-1),
           m_total_prune_automaton_states(-1) {}
 
-    void start_search_pair_states() { m_search_pair_states_time.start(); }
+    void start_search_pair_states();
 
-    void end_search_pair_states(int total_pair_states) {
-        m_search_pair_states_time.end();
-        m_total_pair_states = total_pair_states;
-    }
+    void end_search_pair_states(int total_pair_states);
 
-    void start_prune_automaton() { m_prune_automaton_time.start(); }
+    void start_prune_automaton();
 
-    void end_prune_automaton(spot::twa_graph_ptr& pruned_automaton) {
-        m_prune_automaton_time.end();
-
-        m_total_prune_automaton_states = pruned_automaton->num_states();
-        m_prune_automaton_state_based_status =
-            pruned_automaton->prop_state_acc().is_true()
-                ? "true"
-                : (pruned_automaton->prop_state_acc().is_false() ? "false" : "maybe");
-    }
+    void end_prune_automaton(spot::twa_graph_ptr& pruned_automaton);
 };
 
 class AutomatonSyntMeasure : public AutomatonFindDepsMeasure {

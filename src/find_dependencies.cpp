@@ -46,9 +46,7 @@ int main(int argc, const char* argv[]) {
 
     // Build Synthesis synt_instance
     verbose_out << "Initialize Synthesis Instance..." << endl;
-    SyntInstance synt_instance(input_str, output_str);
-    verbose_out << "Building Synthesis Formula..." << endl;
-    synt_instance.build_formula(synt_formula);
+    SyntInstance synt_instance(input_str, output_str, synt_formula);
     verbose_out << "Synthesis Problem: " << endl;
     verbose_out << synt_instance << endl;
     verbose_out << "================================" << endl;
@@ -63,7 +61,7 @@ int main(int argc, const char* argv[]) {
 
             verbose_out << "Building Synthesis Automaton..." << endl;
             formula_measures->start_automaton_construct();
-            auto automaton = build_buchi_automaton(synt_instance);
+            auto automaton = construct_automaton(synt_instance);
             string state_based_status =
                 automaton->prop_state_acc().is_true()
                     ? "true"
@@ -92,7 +90,7 @@ int main(int argc, const char* argv[]) {
 
             // Building Instance Automaton
             automaton_measures->start_automaton_construct();
-            auto automaton = build_buchi_automaton(synt_instance);
+            auto automaton = construct_automaton(synt_instance);
             automaton_measures->end_automaton_construct(automaton);
 
             automaton_measures->start_prune_automaton();
