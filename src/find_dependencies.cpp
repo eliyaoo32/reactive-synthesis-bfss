@@ -31,22 +31,19 @@ void on_sighup(int args) {
 }
 
 int main(int argc, const char* argv[]) {
-    string synt_formula, input_str, output_str;
-    bool is_verbose;
-    Algorithm selected_algorithm;
+    CLIOptions options;
 
-    int parsed_cli_status = parse_cli(argc, argv, synt_formula, input_str, output_str,
-                                      is_verbose, selected_algorithm);
+    int parsed_cli_status = parse_cli(argc, argv, options);
     if (!parsed_cli_status) {
         return EXIT_FAILURE;
     }
 
     std::ostream nullout(nullptr);
-    ostream& verbose_out = is_verbose ? std::cout : nullout;
+    ostream& verbose_out = options.verbose ? std::cout : nullout;
 
     // Build Synthesis synt_instance
     verbose_out << "Initialize Synthesis Instance..." << endl;
-    SyntInstance synt_instance(input_str, output_str, synt_formula);
+    SyntInstance synt_instance(options.inputs, options.outputs, options.formula);
     verbose_out << "Synthesis Problem: " << endl;
     verbose_out << synt_instance << endl;
     verbose_out << "================================" << endl;
@@ -55,7 +52,7 @@ int main(int argc, const char* argv[]) {
     signal(SIGHUP, on_sighup);
 
     try {
-        if (selected_algorithm == Algorithm::FORMULA) {
+        if (options.algorithm == Algorithm::FORMULA) {
             auto* formula_measures = new SyntMeasures(synt_instance);
             synt_measures = formula_measures;
 
@@ -79,10 +76,7 @@ int main(int argc, const char* argv[]) {
                         << endl;
             verbose_out << "Formula Dependency Variables: "
                         << formula_independent_variables << endl;
-        }
-
-        // Find Dependencies by automaton method
-        if (selected_algorithm == Algorithm::AUTOMATON) {
+        } else if (options.algorithm == Algorithm::AUTOMATON) {
             auto* automaton_measures = new AutomatonFindDepsMeasure(synt_instance);
             synt_measures = automaton_measures;
 
@@ -108,6 +102,9 @@ int main(int argc, const char* argv[]) {
                         << automaton_dependent_variables << endl;
             verbose_out << "Automaton Dependency Variables: "
                         << automaton_independent_variables << endl;
+        } else {
+            std::cerr << "No algorithm was selected " << std::endl;
+            return EXIT_FAILURE;
         }
 
         synt_measures->completed();

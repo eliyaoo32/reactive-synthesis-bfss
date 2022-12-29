@@ -29,17 +29,14 @@ int main(int argc, const char* argv[]) {
     /**
      * =================== Step 1: Processing synthesis problem
      */
-    string synt_formula, input_str, output_str;
-    bool is_verbose;
-    Algorithm selected_algorithm;    // TODO: remove the selected algorithm
-    int synthesis_minimize_lvl = 2;  // TODO: check what is the correct
+    CLIOptions options;
+    int synthesis_minimize_lvl = 2;  // I.e, simplication level
 
-    int parsed_cli_status = parse_cli(argc, argv, synt_formula, input_str, output_str,
-                                      is_verbose, selected_algorithm);
+    int parsed_cli_status = parse_cli(argc, argv, options);
     if (!parsed_cli_status) {
         return EXIT_FAILURE;
     }
-    SyntInstance synt_instance(input_str, output_str, synt_formula);
+    SyntInstance synt_instance(options.inputs, options.outputs, options.formula);
     AutomatonSyntMeasure synt_measures(synt_instance);
     vector<string> output_vars(synt_instance.get_output_vars());
 
@@ -61,7 +58,6 @@ int main(int argc, const char* argv[]) {
     synt_measures.start_automaton_construct();
     translator trans(dict, &extra_options);
     trans.set_type(spot::postprocessor::Buchi);
-    // TODO: Check why SBAacc adds more states to the mealy machine, consider removing it
     trans.set_pref(spot::postprocessor::SBAcc);
 
     auto automaton = trans.run(construct_formula(synt_instance));
@@ -119,7 +115,6 @@ int main(int argc, const char* argv[]) {
     synt_measures.end_split_2step();
 
     synt_measures.start_nba_to_dpa();
-    // TODO: understand what's the function ntgba2dpa and how it works internally
     auto dpa = ntgba2dpa(splitted, gi.force_sbacc);
     // Transform an automaton into a parity game by propagating players.
     alternate_players(dpa);
@@ -150,7 +145,6 @@ int main(int argc, const char* argv[]) {
     spot::mealy_like ml;
     ml.success = spot::mealy_like::realizability_code::REALIZABLE_REGULAR;
     ml.mealy_like = spot::solved_game_to_mealy(arena, gi);
-    // TODO: check what is the should_split
     bool should_split = false;
     simplify_mealy_here(ml.mealy_like, synthesis_minimize_lvl, should_split);
     synt_measures.end_dpa_to_mealy();

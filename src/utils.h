@@ -18,8 +18,15 @@ enum Algorithm { UNKNOWN = 0, FORMULA = 1, AUTOMATON = 2 };
 
 Algorithm string_to_algorithm(const std::string &str);
 
-bool parse_cli(int argc, const char *argv[], std::string &formula, std::string &input,
-               std::string &output, bool &should_verbose, Algorithm &selected_algorithm);
+struct CLIOptions {
+    std::string formula;
+    std::string inputs;
+    std::string outputs;
+    bool verbose;
+    Algorithm algorithm;
+};
+
+bool parse_cli(int argc, const char *argv[], CLIOptions &options);
 
 std::ostream &operator<<(std::ostream &out, const std::vector<std::string> &vec);
 
