@@ -17,6 +17,7 @@
 enum Algorithm { UNKNOWN = 0, FORMULA = 1, AUTOMATON = 2 };
 
 Algorithm string_to_algorithm(const std::string &str);
+std::string algorithm_to_string(const Algorithm &algo);
 
 struct CLIOptions {
     std::string formula;
@@ -24,11 +25,16 @@ struct CLIOptions {
     std::string outputs;
     bool verbose;
     Algorithm algorithm;
+
+    // Synthesis algorithm
+    bool skip_dependencies;
 };
 
 bool parse_cli(int argc, const char *argv[], CLIOptions &options);
 
 std::ostream &operator<<(std::ostream &out, const std::vector<std::string> &vec);
+
+std::ostream &operator<<(std::ostream &out, const CLIOptions &options);
 
 using Duration = long;
 

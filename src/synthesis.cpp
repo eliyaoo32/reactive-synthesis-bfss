@@ -36,6 +36,12 @@ int main(int argc, const char* argv[]) {
     if (!parsed_cli_status) {
         return EXIT_FAILURE;
     }
+    ostream nullout(nullptr);
+    ostream& verbose = options.verbose ? std::cout : nullout;
+
+    verbose << "=> Loaded Options: " << endl;
+    verbose << options << endl;
+
     SyntInstance synt_instance(options.inputs, options.outputs, options.formula);
     AutomatonSyntMeasure synt_measures(synt_instance);
     vector<string> output_vars(synt_instance.get_output_vars());
@@ -63,40 +69,56 @@ int main(int argc, const char* argv[]) {
     auto automaton = trans.run(construct_formula(synt_instance));
     synt_measures.end_automaton_construct(automaton);
 
-    synt_measures.start_prune_automaton();
-    automaton = spot::scc_filter_states(automaton);  // Prune automaton
-    synt_measures.end_prune_automaton(automaton);
+    if (options.skip_dependencies) {
+        verbose << "=> Skipping Automaton Pruning" << endl;
+    } else {
+        verbose << "=> Pruning Automaton before searching dependecies:" << endl;
+
+        synt_measures.start_prune_automaton();
+        automaton = spot::scc_filter_states(automaton);  // Prune automaton
+        synt_measures.end_prune_automaton(automaton);
+    }
 
     auto tobdd = [&automaton](const std::string& ap_name) {
         return bdd_ithvar(automaton->register_ap(ap_name));
     };
 
-    /**
-     * =================== Step 3: Find Dependent Variables
-     */
-    vector<string> dependent_variables, independent_variables;
-    AutomatonAlgorithm automaton_dependencies(synt_instance, synt_measures, automaton,
-                                              false);
-    automaton_dependencies.find_dependencies(dependent_variables, independent_variables);
+    if (options.skip_dependencies) {
+        verbose << "=> Skip finding dependent variables..." << endl;
+    } else {
+        /**
+         * =================== Step 3: Find Dependent Variables
+         */
+        verbose << "=> Finding Dependent Variables" << endl;
 
-    // =================== Step 4: Remove dependent variables from the NBA
-    synt_measures.start_remove_dependent_ap();
-    bdd dependents = bddtrue;
-    for (string& dep_var : dependent_variables) {
-        dependents &= tobdd(dep_var);
-    }
-    // Apply exists operator on all edges
-    for (int i = 0; i < automaton->num_states(); i++) {
-        for (auto& edge : automaton->out(i)) {
-            edge.cond = bdd_exist(edge.cond, dependents);
+        vector<string> dependent_variables, independent_variables;
+        AutomatonAlgorithm automaton_dependencies(synt_instance, synt_measures, automaton,
+                                                  false);
+        automaton_dependencies.find_dependencies(dependent_variables,
+                                                 independent_variables);
+        verbose << "=> Found " << dependent_variables.size() << " dependent variables"
+                << endl;
+
+        // =================== Step 4: Remove dependent variables from the NBA
+        verbose << "=> Remove Dependent Variables" << endl;
+        synt_measures.start_remove_dependent_ap();
+        bdd dependents = bddtrue;
+        for (string& dep_var : dependent_variables) {
+            dependents &= tobdd(dep_var);
         }
+        // Apply exists operator on all edges
+        for (int i = 0; i < automaton->num_states(); i++) {
+            for (auto& edge : automaton->out(i)) {
+                edge.cond = bdd_exist(edge.cond, dependents);
+            }
+        }
+        // Unregister dependent variables
+        for (string& dep_var : dependent_variables) {
+            int ap = automaton->register_ap(dep_var);
+            automaton->unregister_ap(ap);
+        }
+        synt_measures.end_remove_dependent_ap();
     }
-    // Unregister dependent variables
-    for (string& dep_var : dependent_variables) {
-        int ap = automaton->register_ap(dep_var);
-        automaton->unregister_ap(ap);
-    }
-    synt_measures.end_remove_dependent_ap();
 
     /**
      * =================== Step 5: Build a game from the NBA

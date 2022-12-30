@@ -17,7 +17,10 @@ bool parse_cli(int argc, const char *argv[], CLIOptions &options) {
                             "Input variables")(
         "verbose,v", Options::bool_switch(&options.verbose), "Verbose messages")(
         "algo,algorithm", Options::value<string>(),
-        "Which algorithm to use: formula, automaton");
+        "Which algorithm to use: formula, automaton")(
+        "skip-deps",
+        Options::bool_switch(&options.skip_dependencies)->default_value(false),
+        "Should skip finding dependent variables and synthesis them separately");
 
     try {
         Options::command_line_parser parser{argc, argv};
@@ -54,10 +57,33 @@ Algorithm string_to_algorithm(const std::string &str) {
     }
 }
 
+std::string algorithm_to_string(const Algorithm &algo) {
+    switch (algo) {
+        case Algorithm::FORMULA:
+            return "formula";
+        case Algorithm::AUTOMATON:
+            return "automaton";
+        default:
+            return "unknown";
+    }
+}
+
 ostream &operator<<(ostream &out, const vector<string> &vec) {
     for (const string &s : vec) {
         out << s << ", ";
     }
+    return out;
+}
+
+std::ostream &operator<<(std::ostream &out, const CLIOptions &options) {
+    out << boolalpha;
+    out << " - Formula: " << options.formula << endl;
+    out << " - Inputs: " << options.inputs << endl;
+    out << " - Outputs: " << options.outputs << endl;
+    out << " - Verbose: " << options.verbose << endl;
+    out << " - Algorithm: " << algorithm_to_string(options.algorithm) << endl;
+    out << " - Skip dependencies: " << options.skip_dependencies << endl;
+
     return out;
 }
 
