@@ -8,7 +8,7 @@ from lookup_dependencies import create_folder, get_all_benchmarks
 
 BENCHMARK_OUTPUT_FILE_FORMAT = '{}.hoa'
 TOOLS = ['ltlsynt-sd', 'ltlsynt-ds',
-         'ltlsynt-lar.old', 'ltlsynt-lar', 'ltlsynt-ps', 'bfss-synt']
+         'ltlsynt-lar.old', 'ltlsynt-lar', 'ltlsynt-ps', 'bfss-synt', 'bfss-synt-skip-deps']
 
 
 def get_benchmark_output_path(benchmark_name, output_dir):
@@ -28,11 +28,13 @@ def process_benchmark(benchmark, timeout, output_dir, synt_tool, tool_path):
         _, algorithm = synt_tool.split('-')
         cli_cmd = 'timeout --signal=HUP {timeout} ltlsynt --formula="{formula}" --ins="{inputs}" --outs="{outputs}" --algo={algo} --decompose=no'.format(
             timeout=timeout, formula=ltl_formula, inputs=input_vars, outputs=output_vars, algo=algorithm)
-    elif synt_tool == 'bfss-synt':
+    elif 'bfss-synt' in synt_tool:
         cli_cmd = 'timeout --signal=HUP {timeout} {tool_path} --formula="{formula}" --input="{inputs}" --output="{outputs}" --algo=automaton'.format(
             timeout=timeout, formula=ltl_formula, inputs=input_vars, outputs=output_vars,
             tool_path=tool_path if tool_path != '' else 'bfss-synt'
         )
+        if 'skip-deps' in synt_tool:
+            cli_cmd += ' --skip-deps'
     else:
         raise Exception("Unknown tool {}".format(synt_tool))
 
