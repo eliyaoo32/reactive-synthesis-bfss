@@ -29,28 +29,82 @@ int main(int argc, const char* argv[]) {
     verbose << "=> Loaded Options: " << endl;
     verbose << options << endl;
 
-    SyntInstance synt_instance(options.inputs, options.outputs, options.formula);
-    AutomatonSyntMeasure synt_measures(synt_instance);
-
     synthesis_info gi;
     gi.s = synthesis_info::algo::SPLIT_DET;
     gi.minimize_lvl = 2;  // I.e, simplication level
 
-    // Synthesis the input
-    spot::mealy_like ml;
-    bool should_find_deps = !options.skip_dependencies;
-    bool is_realizable = synthesis_formula(synt_instance, gi, synt_measures, verbose,
-                                           should_find_deps, ml);
+    if (options.decompose_formula) {
+        // Decompose the formula into sub-formulas
+        vector<string> output_vars;
+        vector<string> input_vars;
+        boost::split(output_vars, options.outputs, boost::is_any_of(","));
+        boost::split(input_vars, options.inputs, boost::is_any_of(","));
 
-    // Output results
-    cout << "/* Synthesis Measures: " << endl;
-    cout << synt_measures << endl;
-    cout << "*/" << endl;
+        auto splitted_formulas =
+            spot::split_independant_formulas(options.formula, output_vars);
+        auto sub_formulas = splitted_formulas.first;
+        auto sub_out_aps = splitted_formulas.second;
+        assert(sub_formulas.size() == sub_out_aps.size());
 
-    if (is_realizable) {
-        cout << "REALIZABLE" << endl;
-        spot::print_hoa(cout, ml.mealy_like);
+        // Synthesis each subformula
+        std::vector<spot::mealy_like> mealy_machines;
+        std::vector<AutomatonSyntMeasure> synthesis_measures_list;
+        auto sub_formula_iter = sub_formulas.begin();
+        auto sub_out_aps_iter = sub_out_aps.begin();
+
+        for (; sub_formula_iter != sub_formulas.end();
+             sub_formula_iter++, sub_out_aps_iter++) {
+            vector<string> sub_output_vars;
+            for (auto& ap : *sub_out_aps_iter) sub_output_vars.push_back(ap.ap_name());
+
+            SyntInstance synt_instance(input_vars, , *sub_formula_iter);
+            AutomatonSyntMeasure synt_measures(synt_instance);
+
+            spot::mealy_like ml;
+            bool should_find_deps = !options.skip_dependencies;
+            bool is_realizable = synthesis_formula(synt_instance, gi, synt_measures,
+                                                   verbose, should_find_deps, ml);
+            if (!is_realizable) {
+                cout << "UNREALIZABLE" << endl;
+                return 0;
+            }
+
+            mealy_machines.push_back(ml);
+            synthesis_measures_list.push_back(synt_measures);
+        }
+
+        // Merge sub-formulas
+        auto tot_strat = mealy_machines.front().mealy_like;
+        for (size_t i = 1; i < mealy_machines.size(); ++i)
+            tot_strat = spot::mealy_product(tot_strat, mealy_machines[i].mealy_like);
+
+        // Print mealy machine
+        if (!tot_strat) {
+            cout << "UNREALIZABLE" << endl;
+        } else {
+            cout << "REALIZABLE" << endl;
+            spot::print_hoa(cout, tot_strat);
+        }
     } else {
-        cout << "UNREALIZABLE" << endl;
+        SyntInstance synt_instance(options.inputs, options.outputs, options.formula);
+        AutomatonSyntMeasure synt_measures(synt_instance);
+
+        // Synthesis the input
+        spot::mealy_like ml;
+        bool should_find_deps = !options.skip_dependencies;
+        bool is_realizable = synthesis_formula(synt_instance, gi, synt_measures, verbose,
+                                               should_find_deps, ml);
+
+        // Output results
+        cout << "/* Synthesis Measures: " << endl;
+        cout << synt_measures << endl;
+        cout << "*/" << endl;
+
+        if (is_realizable) {
+            cout << "REALIZABLE" << endl;
+            spot::print_hoa(cout, ml.mealy_like);
+        } else {
+            cout << "UNREALIZABLE" << endl;
+        }
     }
 }

@@ -28,6 +28,7 @@ struct CLIOptions {
 
     // Synthesis algorithm
     bool skip_dependencies;
+    bool decompose_formula;
 };
 
 bool parse_cli(int argc, const char *argv[], CLIOptions &options);

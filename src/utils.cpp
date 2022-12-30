@@ -20,7 +20,11 @@ bool parse_cli(int argc, const char *argv[], CLIOptions &options) {
         "Which algorithm to use: formula, automaton")(
         "skip-deps",
         Options::bool_switch(&options.skip_dependencies)->default_value(false),
-        "Should skip finding dependent variables and synthesis them separately");
+        "Should skip finding dependent variables and synthesis them separately")(
+        "decompose",
+        Options::bool_switch(&options.decompose_formula)->default_value(false),
+        "Should decompose the formula into sub formulas and synthesis each formula "
+        "separately");
 
     try {
         Options::command_line_parser parser{argc, argv};

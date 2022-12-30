@@ -20,14 +20,29 @@ SyntInstance::SyntInstance(const std::string& input_str, const std::string& outp
     boost::split(m_output_vars, output_str, boost::is_any_of(","));
 
     build_all_vars();
+    construct_formula();
 }
 
-SyntInstance::SyntInstance(std::vector<std::string> inputs,
-                           std::vector<std::string> outputs, std::string& formula)
+SyntInstance::SyntInstance(std::vector<std::string>& inputs,
+                           std::vector<std::string>& outputs, std::string& formula)
     : m_input_vars(std::move(inputs)),
       m_output_vars(std::move(outputs)),
       m_formula(formula) {
     build_all_vars();
+    construct_formula();
+};
+
+SyntInstance::SyntInstance(std::vector<std::string>& inputs,
+                           std::vector<std::string>& outputs, spot::formula& formula)
+    : m_input_vars(std::move(inputs)),
+      m_output_vars(std::move(outputs)),
+      m_formula_parsed(formula) {
+    build_all_vars();
+
+    // Convert spot formula to string
+    std::stringstream ss;
+    ss << formula;
+    m_formula = ss.str();
 };
 
 void SyntInstance::all_vars_excluded(std::vector<std::string>& dst,
@@ -41,24 +56,24 @@ void SyntInstance::all_vars_excluded(std::vector<std::string>& dst,
     }
 }
 
-spot::formula construct_formula(SyntInstance& synt_instance) {
-    spot::parsed_formula pf = spot::parse_infix_psl(synt_instance.get_formula_str());
+void SyntInstance::construct_formula() {
+    spot::parsed_formula pf = spot::parse_infix_psl(this->m_formula);
 
     if (pf.format_errors(std::cerr)) {
-        throw std::runtime_error("Error parsing formula_str: " +
-                                 synt_instance.get_formula_str());
+        throw std::runtime_error("Error parsing formula_str: " + this->m_formula);
     }
     if (pf.f == nullptr) {
         throw std::runtime_error("Formula is not built yet");
     }
 
-    return spot::formula(pf.f);
+    this->m_formula_parsed = spot::formula(pf.f);
 }
+
 spot::twa_graph_ptr construct_automaton(SyntInstance& synt_instance) {
     spot::translator trans;
     trans.set_type(spot::postprocessor::Buchi);
     trans.set_pref(spot::postprocessor::SBAcc);
-    auto automaton = trans.run(construct_formula(synt_instance));
+    auto automaton = trans.run(synt_instance.get_formula_parsed());
 
     return automaton;
 }

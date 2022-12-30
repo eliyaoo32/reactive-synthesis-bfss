@@ -86,7 +86,7 @@ spot::twa_graph_ptr get_nba_for_synthesis(SyntInstance& synt_instance, synthesis
     trans.set_type(spot::postprocessor::Buchi);
     trans.set_pref(spot::postprocessor::SBAcc);
 
-    auto automaton = trans.run(construct_formula(synt_instance));
+    auto automaton = trans.run(synt_instance.get_formula_parsed());
     synt_measures.end_automaton_construct(automaton);
 
     verbose << "=> Pruning Automaton" << endl;
