@@ -7,17 +7,20 @@
 namespace Options = boost::program_options;
 using namespace std;
 
-bool parse_cli(int argc, const char *argv[], std::string &formula,
-               std::string &input_vars, std::string &output_vars, bool &should_verbose,
-               Algorithm &selected_algorithm) {
+bool parse_cli(int argc, const char *argv[], CLIOptions &options) {
     Options::options_description desc("Tool to find dependencies in LTL formula");
-    desc.add_options()("formula,f", Options::value<string>(&formula)->required(),
+    desc.add_options()("formula,f", Options::value<string>(&options.formula)->required(),
                        "LTL formula")(
-        "output,o", Options::value<string>(&output_vars)->required(), "Output variables")(
-        "input,i", Options::value<string>(&input_vars)->required(), "Input variables")(
-        "verbose,v", Options::bool_switch(&should_verbose), "Verbose messages")(
-        "algo,algorithm", Options::value<string>()->required(),
-        "Which algorithm to use: formula, automaton");
+        "output,o", Options::value<string>(&options.outputs)->required(),
+        "Output variables")("input,i",
+                            Options::value<string>(&options.inputs)->required(),
+                            "Input variables")(
+        "verbose,v", Options::bool_switch(&options.verbose), "Verbose messages")(
+        "algo,algorithm", Options::value<string>(),
+        "Which algorithm to use: formula, automaton")(
+        "skip-deps",
+        Options::bool_switch(&options.skip_dependencies)->default_value(false),
+        "Should skip finding dependent variables and synthesis them separately");
 
     try {
         Options::command_line_parser parser{argc, argv};
@@ -31,15 +34,9 @@ bool parse_cli(int argc, const char *argv[], std::string &formula,
         Options::notify(vm);
 
         if (vm.count("algo")) {
-            selected_algorithm = string_to_algorithm(vm["algo"].as<string>());
-
-            if (selected_algorithm == Algorithm::UNKNOWN) {
-                cerr << "Invalid algorithm: " << vm["algo"].as<string>() << endl;
-                return false;
-            }
+            options.algorithm = string_to_algorithm(vm["algo"].as<string>());
         } else {
-            std::cerr << "No algorithm was selected " << std::endl;
-            return false;
+            options.algorithm = Algorithm::UNKNOWN;
         }
 
         return true;
@@ -60,10 +57,33 @@ Algorithm string_to_algorithm(const std::string &str) {
     }
 }
 
+std::string algorithm_to_string(const Algorithm &algo) {
+    switch (algo) {
+        case Algorithm::FORMULA:
+            return "formula";
+        case Algorithm::AUTOMATON:
+            return "automaton";
+        default:
+            return "unknown";
+    }
+}
+
 ostream &operator<<(ostream &out, const vector<string> &vec) {
     for (const string &s : vec) {
         out << s << ", ";
     }
+    return out;
+}
+
+std::ostream &operator<<(std::ostream &out, const CLIOptions &options) {
+    out << boolalpha;
+    out << " - Formula: " << options.formula << endl;
+    out << " - Inputs: " << options.inputs << endl;
+    out << " - Outputs: " << options.outputs << endl;
+    out << " - Verbose: " << options.verbose << endl;
+    out << " - Algorithm: " << algorithm_to_string(options.algorithm) << endl;
+    out << " - Skip dependencies: " << options.skip_dependencies << endl;
+
     return out;
 }
 

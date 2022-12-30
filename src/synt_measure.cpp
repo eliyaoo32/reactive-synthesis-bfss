@@ -121,8 +121,11 @@ void AutomatonSyntMeasure::get_json_object(json::object& obj) const {
     AutomatonFindDepsMeasure::get_json_object(obj);
 
     json::object synthesis_process_obj;
-    synthesis_process_obj.emplace("remove_dependent_ap_duration",
-                                  m_remove_dependent_ap.get_duration());
+    if (m_remove_dependent_ap.has_started()) {
+        synthesis_process_obj.emplace("remove_dependent_ap_duration",
+                                      m_remove_dependent_ap.get_duration());
+    }
+
     synthesis_process_obj.emplace("split_2step_duration", m_split_2step.get_duration());
     synthesis_process_obj.emplace("nba_to_dpa_duration", m_nba_to_dpa.get_duration());
     synthesis_process_obj.emplace("solve_game_duration", m_solve_game.get_duration());

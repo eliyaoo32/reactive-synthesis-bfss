@@ -94,3 +94,8 @@ The tool basically does the following:
 python ./lookup_dependencies.py --timeout=10s --all --name="MusicAppSimple" --algorithm=formula --find_deps_tool="../build/find_dependencies" --benchs_list="../benchmarks.csv" --output_dir="../outputs"
 ```
 
+### Example 2:
+* Example of applying synthesis tool
+```bash
+python3 ./apply_synt.py --timeout=10s --all --name="ltl2dpa16" --tool_path="../build/synthesis" --benchs_list="../assets/benchmarks.csv" --output_dir="../outputs-test" --tool=bfss-synt-skip-deps
+```

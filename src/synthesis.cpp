@@ -29,17 +29,20 @@ int main(int argc, const char* argv[]) {
     /**
      * =================== Step 1: Processing synthesis problem
      */
-    string synt_formula, input_str, output_str;
-    bool is_verbose;
-    Algorithm selected_algorithm;    // TODO: remove the selected algorithm
-    int synthesis_minimize_lvl = 2;  // TODO: check what is the correct
+    CLIOptions options;
+    int synthesis_minimize_lvl = 2;  // I.e, simplication level
 
-    int parsed_cli_status = parse_cli(argc, argv, synt_formula, input_str, output_str,
-                                      is_verbose, selected_algorithm);
+    int parsed_cli_status = parse_cli(argc, argv, options);
     if (!parsed_cli_status) {
         return EXIT_FAILURE;
     }
-    SyntInstance synt_instance(input_str, output_str, synt_formula);
+    ostream nullout(nullptr);
+    ostream& verbose = options.verbose ? std::cout : nullout;
+
+    verbose << "=> Loaded Options: " << endl;
+    verbose << options << endl;
+
+    SyntInstance synt_instance(options.inputs, options.outputs, options.formula);
     AutomatonSyntMeasure synt_measures(synt_instance);
     vector<string> output_vars(synt_instance.get_output_vars());
 
@@ -61,46 +64,61 @@ int main(int argc, const char* argv[]) {
     synt_measures.start_automaton_construct();
     translator trans(dict, &extra_options);
     trans.set_type(spot::postprocessor::Buchi);
-    // TODO: Check why SBAacc adds more states to the mealy machine, consider removing it
     trans.set_pref(spot::postprocessor::SBAcc);
 
     auto automaton = trans.run(construct_formula(synt_instance));
     synt_measures.end_automaton_construct(automaton);
 
-    synt_measures.start_prune_automaton();
-    automaton = spot::scc_filter_states(automaton);  // Prune automaton
-    synt_measures.end_prune_automaton(automaton);
+    if (options.skip_dependencies) {
+        verbose << "=> Skipping Automaton Pruning" << endl;
+    } else {
+        verbose << "=> Pruning Automaton before searching dependecies:" << endl;
+
+        synt_measures.start_prune_automaton();
+        automaton = spot::scc_filter_states(automaton);  // Prune automaton
+        synt_measures.end_prune_automaton(automaton);
+    }
 
     auto tobdd = [&automaton](const std::string& ap_name) {
         return bdd_ithvar(automaton->register_ap(ap_name));
     };
 
-    /**
-     * =================== Step 3: Find Dependent Variables
-     */
-    vector<string> dependent_variables, independent_variables;
-    AutomatonAlgorithm automaton_dependencies(synt_instance, synt_measures, automaton,
-                                              false);
-    automaton_dependencies.find_dependencies(dependent_variables, independent_variables);
+    if (options.skip_dependencies) {
+        verbose << "=> Skip finding dependent variables..." << endl;
+    } else {
+        /**
+         * =================== Step 3: Find Dependent Variables
+         */
+        verbose << "=> Finding Dependent Variables" << endl;
 
-    // =================== Step 4: Remove dependent variables from the NBA
-    synt_measures.start_remove_dependent_ap();
-    bdd dependents = bddtrue;
-    for (string& dep_var : dependent_variables) {
-        dependents &= tobdd(dep_var);
-    }
-    // Apply exists operator on all edges
-    for (int i = 0; i < automaton->num_states(); i++) {
-        for (auto& edge : automaton->out(i)) {
-            edge.cond = bdd_exist(edge.cond, dependents);
+        vector<string> dependent_variables, independent_variables;
+        AutomatonAlgorithm automaton_dependencies(synt_instance, synt_measures, automaton,
+                                                  false);
+        automaton_dependencies.find_dependencies(dependent_variables,
+                                                 independent_variables);
+        verbose << "=> Found " << dependent_variables.size() << " dependent variables"
+                << endl;
+
+        // =================== Step 4: Remove dependent variables from the NBA
+        verbose << "=> Remove Dependent Variables" << endl;
+        synt_measures.start_remove_dependent_ap();
+        bdd dependents = bddtrue;
+        for (string& dep_var : dependent_variables) {
+            dependents &= tobdd(dep_var);
         }
+        // Apply exists operator on all edges
+        for (int i = 0; i < automaton->num_states(); i++) {
+            for (auto& edge : automaton->out(i)) {
+                edge.cond = bdd_exist(edge.cond, dependents);
+            }
+        }
+        // Unregister dependent variables
+        for (string& dep_var : dependent_variables) {
+            int ap = automaton->register_ap(dep_var);
+            automaton->unregister_ap(ap);
+        }
+        synt_measures.end_remove_dependent_ap();
     }
-    // Unregister dependent variables
-    for (string& dep_var : dependent_variables) {
-        int ap = automaton->register_ap(dep_var);
-        automaton->unregister_ap(ap);
-    }
-    synt_measures.end_remove_dependent_ap();
 
     /**
      * =================== Step 5: Build a game from the NBA
@@ -119,7 +137,6 @@ int main(int argc, const char* argv[]) {
     synt_measures.end_split_2step();
 
     synt_measures.start_nba_to_dpa();
-    // TODO: understand what's the function ntgba2dpa and how it works internally
     auto dpa = ntgba2dpa(splitted, gi.force_sbacc);
     // Transform an automaton into a parity game by propagating players.
     alternate_players(dpa);
@@ -150,7 +167,6 @@ int main(int argc, const char* argv[]) {
     spot::mealy_like ml;
     ml.success = spot::mealy_like::realizability_code::REALIZABLE_REGULAR;
     ml.mealy_like = spot::solved_game_to_mealy(arena, gi);
-    // TODO: check what is the should_split
     bool should_split = false;
     simplify_mealy_here(ml.mealy_like, synthesis_minimize_lvl, should_split);
     synt_measures.end_dpa_to_mealy();
