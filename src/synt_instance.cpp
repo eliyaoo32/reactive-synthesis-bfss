@@ -1,6 +1,7 @@
 
 #include "synt_instance.h"
 
+#include <algorithm>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -54,6 +55,21 @@ void SyntInstance::all_vars_excluded(std::vector<std::string>& dst,
             dst.push_back(var);
         }
     }
+}
+
+void SyntInstance::order_output_vars(std::vector<std::string>& expected_order) {
+    auto pred = [&expected_order](const std::string& a, const std::string& b) {
+        auto it_a = std::find(expected_order.begin(), expected_order.end(), a);
+        auto it_b = std::find(expected_order.begin(), expected_order.end(), b);
+
+        if (it_a == expected_order.end() || it_b == expected_order.end()) {
+            throw std::runtime_error("Output variable not found in expected order");
+        }
+
+        return it_a < it_b;
+    };
+
+    std::sort(m_output_vars.begin(), m_output_vars.end(), pred);
 }
 
 void SyntInstance::construct_formula() {

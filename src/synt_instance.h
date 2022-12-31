@@ -48,6 +48,9 @@ class SyntInstance {
     void all_vars_excluded(std::vector<std::string>& dst,
                            const std::vector<std::string>& excluded);
 
+    // Make sure that the order in output variables is the same as in expected_order
+    void order_output_vars(std::vector<std::string>& expected_order);
+
     std::string& get_formula_str() { return m_formula; }
 
     const spot::formula& get_formula_parsed() { return m_formula_parsed; }

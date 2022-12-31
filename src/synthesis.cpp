@@ -66,6 +66,8 @@ int main(int argc, const char* argv[]) {
              * until end of the program*/
             SyntInstance* synt_instance =
                 new SyntInstance(input_vars, sub_output_vars, *sub_formula_iter);
+            synt_instance->order_output_vars(output_vars);
+
             AutomatonSyntMeasure synt_measures(*synt_instance);
 
             spot::mealy_like ml;
