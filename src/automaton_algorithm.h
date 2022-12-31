@@ -52,10 +52,21 @@ class AutomatonAlgorithm {
 
     void init_automaton();
 
+    void find_dependencies_candidates(std::vector<std::string>& candidates_dst);
+
+    /**
+     * @brief In a validation of a dependent variables, we need to calculate what's the
+     * dependency set of the dependent variable. This function extracts the dependency
+     * set.
+     */
+    void extract_dependency_set(std::vector<std::string>& dependency_set_dst,
+                                std::vector<std::string>& current_candidates,
+                                std::vector<std::string>& current_independents);
+
    public:
     explicit AutomatonAlgorithm(SyntInstance& synt_instance,
-                                AutomatonFindDepsMeasure& measure, spot::twa_graph_ptr aut,
-                                bool should_prune)
+                                AutomatonFindDepsMeasure& measure,
+                                spot::twa_graph_ptr aut, bool should_prune)
         : m_synt_instance(synt_instance), m_measures(measure), m_automaton(aut) {
         if (should_prune) {
             m_measures.start_prune_automaton();
