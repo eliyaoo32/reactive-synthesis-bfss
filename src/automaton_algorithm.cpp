@@ -44,8 +44,13 @@ void AutomatonAlgorithm::find_dependencies(vector<string>& dependent_variables,
 void AutomatonAlgorithm::find_dependencies_candidates(
     std::vector<std::string>& candidates_dst) {
     candidates_dst.clear();
-    const vector<string>& output_vars = m_synt_instance.get_output_vars();
-    std::copy(output_vars.begin(), output_vars.end(), std::back_inserter(candidates_dst));
+
+    const vector<string>& candidates =
+        m_dependent_variable_type == DependentVariableType::Output
+            ? m_synt_instance.get_output_vars()
+            : m_synt_instance.get_input_vars();
+
+    std::copy(candidates.begin(), candidates.end(), std::back_inserter(candidates_dst));
 }
 
 void AutomatonAlgorithm::extract_dependency_set(
@@ -54,13 +59,20 @@ void AutomatonAlgorithm::extract_dependency_set(
     std::vector<std::string>& current_independents) {
     dependency_set_dst.clear();
 
-    // Dependency Set = Input Vars + Candidates Vars + Independent Vars
-    auto target_deps_set =
-        boost::join(m_synt_instance.get_input_vars(),
-                    boost::join(current_candidates, current_independents));
+    if (m_dependent_variable_type == DependentVariableType::Output) {
+        // Dependency Set = Input Vars + Candidates Vars + Independent Vars
+        auto target_deps_set =
+            boost::join(m_synt_instance.get_input_vars(),
+                        boost::join(current_candidates, current_independents));
 
-    copy(target_deps_set.begin(), target_deps_set.end(),
-         back_inserter(dependency_set_dst));
+        copy(target_deps_set.begin(), target_deps_set.end(),
+             back_inserter(dependency_set_dst));
+    } else {
+        // Dependency Set = Candidates Vars + Independent Vars
+        auto target_deps_set = boost::join(current_candidates, current_independents);
+        copy(target_deps_set.begin(), target_deps_set.end(),
+             back_inserter(dependency_set_dst));
+    }
 }
 
 bool AutomatonAlgorithm::is_variable_dependent(std::string dependent_var,

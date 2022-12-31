@@ -96,6 +96,15 @@ int main(int argc, const char* argv[]) {
             vector<string> automaton_dependent_variables, automaton_independent_variables;
             AutomatonAlgorithm automaton_dependencies(synt_instance, *automaton_measures,
                                                       automaton, false);
+            if (options.find_input_dependencies) {
+                verbose_out << "Searching for input dependent variables..." << endl;
+                automaton_dependencies.set_dependent_variable_type(
+                    AutomatonAlgorithm::DependentVariableType::Input);
+            } else {
+                verbose_out << "Searching for output dependent variables..." << endl;
+                automaton_dependencies.set_dependent_variable_type(
+                    AutomatonAlgorithm::DependentVariableType::Output);
+            }
             automaton_dependencies.find_dependencies(automaton_dependent_variables,
                                                      automaton_independent_variables);
 
