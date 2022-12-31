@@ -99,6 +99,7 @@ void AutomatonFindDepsMeasure::get_json_object(json::object& obj) const {
     obj["algorithm_type"] = "automaton";
 
     json::object automaton_algo_obj;
+    automaton_algo_obj["skipped_dependecies"] = this->m_skipped_dependency_check;
     automaton_algo_obj["type"] = "automaton";
     automaton_algo_obj["total_pair_state"] = this->m_total_pair_states;
     if (this->m_search_pair_states_time.has_started()) {

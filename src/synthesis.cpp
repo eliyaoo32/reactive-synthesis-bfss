@@ -69,7 +69,7 @@ int main(int argc, const char* argv[]) {
                 new SyntInstance(input_vars, sub_output_vars, *sub_formula_iter);
             synt_instance->order_output_vars(output_vars);
 
-            AutomatonSyntMeasure synt_measures(*synt_instance);
+            AutomatonSyntMeasure synt_measures(*synt_instance, options.skip_dependencies);
 
             spot::mealy_like ml;
             bool should_find_deps = !options.skip_dependencies;
@@ -112,7 +112,7 @@ int main(int argc, const char* argv[]) {
         }
     } else {
         SyntInstance synt_instance(options.inputs, options.outputs, options.formula);
-        AutomatonSyntMeasure synt_measures(synt_instance);
+        AutomatonSyntMeasure synt_measures(synt_instance, options.skip_dependencies);
 
         // Synthesis the input
         spot::mealy_like ml;

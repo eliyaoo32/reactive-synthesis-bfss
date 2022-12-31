@@ -77,7 +77,8 @@ int main(int argc, const char* argv[]) {
             verbose_out << "Formula Dependency Variables: "
                         << formula_independent_variables << endl;
         } else if (options.algorithm == Algorithm::AUTOMATON) {
-            auto* automaton_measures = new AutomatonFindDepsMeasure(synt_instance);
+            auto* automaton_measures =
+                new AutomatonFindDepsMeasure(synt_instance, options.skip_dependencies);
             synt_measures = automaton_measures;
 
             verbose_out << "Searching Dependencies By Automaton Definition..." << endl;
