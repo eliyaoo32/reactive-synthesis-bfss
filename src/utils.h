@@ -28,9 +28,12 @@ struct CLIOptions {
 
     // Synthesis algorithm
     bool skip_dependencies;
+    bool decompose_formula;
 };
 
 bool parse_cli(int argc, const char *argv[], CLIOptions &options);
+
+void extract_variables(const std::string &str, std::vector<std::string> &dst);
 
 std::ostream &operator<<(std::ostream &out, const std::vector<std::string> &vec);
 

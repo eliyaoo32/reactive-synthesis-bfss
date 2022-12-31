@@ -19,16 +19,17 @@ void AutomatonAlgorithm::find_dependencies(vector<string>& dependent_variables,
 
     // Find Dependencies
     std::vector<std::string> candidates(m_synt_instance.get_output_vars());
+
     while (!candidates.empty()) {
         std::string dependent_var = candidates.back();
         candidates.pop_back();
         m_measures.start_testing_variable(dependent_var);
 
         // Dependency Set = Input Vars + Candidates Vars + Independent Vars
+        vector<string> dependency_set;
         auto target_deps_set =
             boost::join(m_synt_instance.get_input_vars(),
                         boost::join(candidates, independent_variables));
-        vector<string> dependency_set;
         copy(target_deps_set.begin(), target_deps_set.end(),
              back_inserter(dependency_set));
 

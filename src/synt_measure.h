@@ -72,15 +72,18 @@ class AutomatonFindDepsMeasure : public SyntMeasures {
     uint m_total_prune_automaton_states;
     TimeMeasure m_search_pair_states_time;
     int m_total_pair_states;
+    bool m_skipped_dependency_check;
 
    protected:
     void get_json_object(json::object& obj) const override;
 
    public:
-    explicit AutomatonFindDepsMeasure(SyntInstance& m_synt_instance)
+    explicit AutomatonFindDepsMeasure(SyntInstance& m_synt_instance,
+                                      bool skipped_dependency_check)
         : SyntMeasures(m_synt_instance),
           m_total_pair_states(-1),
-          m_total_prune_automaton_states(-1) {}
+          m_total_prune_automaton_states(-1),
+          m_skipped_dependency_check(skipped_dependency_check) {}
 
     void start_search_pair_states();
 
@@ -103,8 +106,9 @@ class AutomatonSyntMeasure : public AutomatonFindDepsMeasure {
     void get_json_object(json::object& obj) const override;
 
    public:
-    explicit AutomatonSyntMeasure(SyntInstance& m_synt_instance)
-        : AutomatonFindDepsMeasure(m_synt_instance) {}
+    explicit AutomatonSyntMeasure(SyntInstance& m_synt_instance,
+                                  bool skipped_dependency_check)
+        : AutomatonFindDepsMeasure(m_synt_instance, skipped_dependency_check) {}
 
     void start_remove_dependent_ap() { m_remove_dependent_ap.start(); }
     void start_split_2step() { m_split_2step.start(); }

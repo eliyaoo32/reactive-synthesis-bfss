@@ -66,7 +66,8 @@ spot::formula* FormulaAlgorithm::get_dependency_formula(string& dependent_var,
     equal_to_primes_formula(dependents_equals_to_prime_formula, dependent_vars);
 
     auto* dependency_formula = new spot::formula(spot::formula::And(
-        {construct_formula(m_synt_instance), construct_formula(*m_prime_synt_instance),
+        {m_synt_instance.get_formula_parsed(),
+         m_prime_synt_instance->get_formula_parsed(),
          spot::formula::M(spot::formula::Not(dependents_equals_to_prime_formula),
                           dependencies_equals_to_prime_formula)}));
 
