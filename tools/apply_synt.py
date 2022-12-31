@@ -15,7 +15,7 @@ def get_benchmark_output_path(benchmark_name, output_dir):
     return os.path.join(output_dir, BENCHMARK_OUTPUT_FILE_FORMAT.format(benchmark_name))
 
 
-def process_benchmark(benchmark, timeout, output_dir, synt_tool, tool_path):
+def process_benchmark(benchmark, timeout, output_dir, synt_tool, tool_path, decompose):
     benchmark_name = benchmark['benchmark_name']
     input_vars = benchmark['input_vars']
     output_vars = benchmark['output_vars']
@@ -26,8 +26,10 @@ def process_benchmark(benchmark, timeout, output_dir, synt_tool, tool_path):
     # Find the cli command of the tool
     if 'ltlsynt' in synt_tool:
         _, algorithm = synt_tool.split('-')
-        cli_cmd = 'timeout --signal=HUP {timeout} ltlsynt --formula="{formula}" --ins="{inputs}" --outs="{outputs}" --algo={algo} --decompose=no'.format(
+        cli_cmd = 'timeout --signal=HUP {timeout} ltlsynt --formula="{formula}" --ins="{inputs}" --outs="{outputs}" --algo={algo}'.format(
             timeout=timeout, formula=ltl_formula, inputs=input_vars, outputs=output_vars, algo=algorithm)
+        if not decompose:
+            cli_cmd += " --decompose=no"
     elif 'bfss-synt' in synt_tool:
         cli_cmd = 'timeout --signal=HUP {timeout} {tool_path} --formula="{formula}" --input="{inputs}" --output="{outputs}" --algo=automaton'.format(
             timeout=timeout, formula=ltl_formula, inputs=input_vars, outputs=output_vars,
@@ -35,6 +37,9 @@ def process_benchmark(benchmark, timeout, output_dir, synt_tool, tool_path):
         )
         if 'skip-deps' in synt_tool:
             cli_cmd += ' --skip-deps'
+
+        if decompose:
+            cli_cmd += ' --decompose'
     else:
         raise Exception("Unknown tool {}".format(synt_tool))
 
@@ -76,6 +81,8 @@ def main():
                         type=str, choices=TOOLS, required=True)
     parser.add_argument('--tool_path', help="A path to executable file of the tool",
                         type=str, required=False, default='')
+    parser.add_argument('--decompose', help="Apply the synthesis tool with decompose option",
+                        default=False, action='store_true')
     args = parser.parse_args()
 
     workers = args.workers
@@ -86,6 +93,7 @@ def main():
     output_dir = args.output_dir
     tool_path = args.tool_path
     synt_tool = args.tool
+    decompose = args.decompose
 
     """
     Search for benchmarks by configuration
@@ -104,7 +112,7 @@ def main():
     Apply the algorithm
     """
     process_benchmark_args = [
-        (benchmark, benchmarks_timeout, output_dir, synt_tool, tool_path)
+        (benchmark, benchmarks_timeout, output_dir, synt_tool, tool_path, decompose)
         for benchmark in benchmarks
     ]
     with Pool(workers) as pool:
