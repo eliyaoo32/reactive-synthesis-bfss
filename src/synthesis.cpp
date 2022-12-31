@@ -37,8 +37,9 @@ int main(int argc, const char* argv[]) {
     if (options.decompose_formula) {
         vector<string> output_vars = {};
         vector<string> input_vars = {};
-        boost::split(output_vars, options.outputs, boost::is_any_of(","));
-        boost::split(input_vars, options.inputs, boost::is_any_of(","));
+
+        extract_variables(options.outputs, output_vars);
+        extract_variables(options.inputs, input_vars);
 
         // Decompose the formula into sub-formulas
         auto splitted_formulas =

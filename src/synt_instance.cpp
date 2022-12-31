@@ -17,8 +17,8 @@ void SyntInstance::build_all_vars() {
 SyntInstance::SyntInstance(const std::string& input_str, const std::string& output_str,
                            const std::string& formula_str)
     : m_formula(formula_str) {
-    boost::split(m_input_vars, input_str, boost::is_any_of(","));
-    boost::split(m_output_vars, output_str, boost::is_any_of(","));
+    extract_variables(input_str, m_input_vars);
+    extract_variables(output_str, m_output_vars);
 
     build_all_vars();
     construct_formula();

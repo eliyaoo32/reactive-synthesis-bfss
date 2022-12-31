@@ -33,6 +33,8 @@ struct CLIOptions {
 
 bool parse_cli(int argc, const char *argv[], CLIOptions &options);
 
+void extract_variables(const std::string &str, std::vector<std::string> &dst);
+
 std::ostream &operator<<(std::ostream &out, const std::vector<std::string> &vec);
 
 std::ostream &operator<<(std::ostream &out, const CLIOptions &options);

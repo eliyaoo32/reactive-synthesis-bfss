@@ -79,6 +79,10 @@ ostream &operator<<(ostream &out, const vector<string> &vec) {
     return out;
 }
 
+void extract_variables(const std::string &str, std::vector<std::string> &dst) {
+    boost::split(dst, str, boost::is_any_of(","));
+}
+
 std::ostream &operator<<(std::ostream &out, const CLIOptions &options) {
     out << boolalpha;
     out << " - Formula: " << options.formula << endl;
