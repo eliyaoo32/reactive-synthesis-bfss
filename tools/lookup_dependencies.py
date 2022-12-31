@@ -45,7 +45,7 @@ def get_all_benchmarks(output_dir, benchmarks_path, ignore_if_output_exists=True
     return benchmarks
 
 
-def process_benchmark(benchmark, timeout, output_dir, find_deps_tool, algorithm):
+def process_benchmark(benchmark, timeout, output_dir, find_deps_tool, algorithm, dependents_type):
     benchmark_name = benchmark['benchmark_name']
     input_vars = benchmark['input_vars']
     output_vars = benchmark['output_vars']
@@ -63,6 +63,9 @@ def process_benchmark(benchmark, timeout, output_dir, find_deps_tool, algorithm)
     }
     find_deps_cli = 'timeout --signal=HUP {process_timeout} {find_deps_cli_path} --formula="{formula}" --input="{inputs}" --output="{outputs}" --algo={algorithm}'.format(
         **config)
+
+    if dependents_type == 'input':
+        find_deps_cli += ' --find-input-only'
 
     with Popen(find_deps_cli, stdout=PIPE, stderr=PIPE, shell=True, preexec_fn=os.setsid) as process:
         result = process.communicate()[0].decode("utf-8")
@@ -99,6 +102,8 @@ def main():
         '--workers', help="Number of workers", type=int, default=16)
     parser.add_argument('--algorithm', help="Algorithm to use",
                         type=str, choices=['automaton', 'formula'], required=True)
+    parser.add_argument('--dependents_type', help="Which type of dependents variable to search for (input or output)",
+                        type=str, choices=['input', 'output'], default='output')
     args = parser.parse_args()
 
     algorithm = args.algorithm
@@ -109,6 +114,7 @@ def main():
     benchmarks_timeout = args.timeout
     output_dir = args.output_dir
     find_deps_tool = args.find_deps_tool
+    dependents_type = args.dependents_type
 
     """
     Search for benchmarks by configuration
@@ -127,7 +133,7 @@ def main():
     Apply the algorithm
     """
     process_benchmark_args = [
-        (benchmark, benchmarks_timeout, output_dir, find_deps_tool, algorithm)
+        (benchmark, benchmarks_timeout, output_dir, find_deps_tool, algorithm, dependents_type)
         for benchmark in benchmarks
     ]
     with Pool(workers) as pool:

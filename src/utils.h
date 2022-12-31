@@ -24,9 +24,12 @@ struct CLIOptions {
     std::string inputs;
     std::string outputs;
     bool verbose;
-    Algorithm algorithm;
 
-    // Synthesis algorithm
+    // Find Dependencies tool
+    Algorithm algorithm;
+    bool find_input_dependencies;
+
+    // Synthesis tool
     bool skip_dependencies;
     bool decompose_formula;
 };

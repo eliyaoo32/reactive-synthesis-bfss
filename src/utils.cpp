@@ -8,6 +8,7 @@ namespace Options = boost::program_options;
 using namespace std;
 
 bool parse_cli(int argc, const char *argv[], CLIOptions &options) {
+    // TODO: seperate options for synthesis and find dependencies
     Options::options_description desc("Tool to find dependencies in LTL formula");
     desc.add_options()("formula,f", Options::value<string>(&options.formula)->required(),
                        "LTL formula")(
@@ -18,6 +19,9 @@ bool parse_cli(int argc, const char *argv[], CLIOptions &options) {
         "verbose,v", Options::bool_switch(&options.verbose), "Verbose messages")(
         "algo,algorithm", Options::value<string>(),
         "Which algorithm to use: formula, automaton")(
+        "find-input-only",
+        Options::bool_switch(&options.find_input_dependencies)->default_value(false),
+        "Search for input dependent variables instead of output dependent variables")(
         "skip-deps",
         Options::bool_switch(&options.skip_dependencies)->default_value(false),
         "Should skip finding dependent variables and synthesis them separately")(
@@ -41,6 +45,13 @@ bool parse_cli(int argc, const char *argv[], CLIOptions &options) {
             options.algorithm = string_to_algorithm(vm["algo"].as<string>());
         } else {
             options.algorithm = Algorithm::UNKNOWN;
+        }
+
+        if (options.algorithm != Algorithm::AUTOMATON &&
+            options.find_input_dependencies) {
+            cerr << "Input dependencies can only be found using the automaton algorithm"
+                 << endl;
+            return false;
         }
 
         return true;

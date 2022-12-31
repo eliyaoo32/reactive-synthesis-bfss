@@ -18,20 +18,16 @@ void AutomatonAlgorithm::find_dependencies(vector<string>& dependent_variables,
     m_measures.end_search_pair_states(static_cast<int>(compatibleStates.size()));
 
     // Find Dependencies
-    std::vector<std::string> candidates(m_synt_instance.get_output_vars());
+    std::vector<std::string> candidates;
+    this->find_dependencies_candidates(candidates);
 
     while (!candidates.empty()) {
         std::string dependent_var = candidates.back();
         candidates.pop_back();
         m_measures.start_testing_variable(dependent_var);
 
-        // Dependency Set = Input Vars + Candidates Vars + Independent Vars
         vector<string> dependency_set;
-        auto target_deps_set =
-            boost::join(m_synt_instance.get_input_vars(),
-                        boost::join(candidates, independent_variables));
-        copy(target_deps_set.begin(), target_deps_set.end(),
-             back_inserter(dependency_set));
+        this->extract_dependency_set(dependency_set, candidates, independent_variables);
 
         // Check if candidates variable is dependent
         if (AutomatonAlgorithm::is_variable_dependent(dependent_var, dependency_set,
@@ -42,6 +38,40 @@ void AutomatonAlgorithm::find_dependencies(vector<string>& dependent_variables,
             independent_variables.push_back(dependent_var);
             m_measures.end_testing_variable(false, dependency_set);
         }
+    }
+}
+
+void AutomatonAlgorithm::find_dependencies_candidates(
+    std::vector<std::string>& candidates_dst) {
+    candidates_dst.clear();
+
+    const vector<string>& candidates =
+        m_dependent_variable_type == DependentVariableType::Output
+            ? m_synt_instance.get_output_vars()
+            : m_synt_instance.get_input_vars();
+
+    std::copy(candidates.begin(), candidates.end(), std::back_inserter(candidates_dst));
+}
+
+void AutomatonAlgorithm::extract_dependency_set(
+    std::vector<std::string>& dependency_set_dst,
+    std::vector<std::string>& current_candidates,
+    std::vector<std::string>& current_independents) {
+    dependency_set_dst.clear();
+
+    if (m_dependent_variable_type == DependentVariableType::Output) {
+        // Dependency Set = Input Vars + Candidates Vars + Independent Vars
+        auto target_deps_set =
+            boost::join(m_synt_instance.get_input_vars(),
+                        boost::join(current_candidates, current_independents));
+
+        copy(target_deps_set.begin(), target_deps_set.end(),
+             back_inserter(dependency_set_dst));
+    } else {
+        // Dependency Set = Candidates Vars + Independent Vars
+        auto target_deps_set = boost::join(current_candidates, current_independents);
+        copy(target_deps_set.begin(), target_deps_set.end(),
+             back_inserter(dependency_set_dst));
     }
 }
 
