@@ -4,6 +4,7 @@ This file takes a Buchi automaton and synthesis it
 
 #include <iostream>
 #include <spot/twaalgos/mealy_machine.hh>
+#include <string>
 #include <vector>
 
 #include "automaton_algorithm.h"
@@ -34,17 +35,19 @@ int main(int argc, const char* argv[]) {
     gi.minimize_lvl = 2;  // I.e, simplication level
 
     if (options.decompose_formula) {
-        // Decompose the formula into sub-formulas
-        vector<string> output_vars;
-        vector<string> input_vars;
+        vector<string> output_vars = {};
+        vector<string> input_vars = {};
         boost::split(output_vars, options.outputs, boost::is_any_of(","));
         boost::split(input_vars, options.inputs, boost::is_any_of(","));
 
+        // Decompose the formula into sub-formulas
         auto splitted_formulas =
             spot::split_independant_formulas(options.formula, output_vars);
         auto sub_formulas = splitted_formulas.first;
         auto sub_out_aps = splitted_formulas.second;
         assert(sub_formulas.size() == sub_out_aps.size());
+
+        verbose << "=> Found " << sub_formulas.size() << " sub-formulas" << endl;
 
         // Synthesis each subformula
         std::vector<spot::mealy_like> mealy_machines;
@@ -55,9 +58,11 @@ int main(int argc, const char* argv[]) {
         for (; sub_formula_iter != sub_formulas.end();
              sub_formula_iter++, sub_out_aps_iter++) {
             vector<string> sub_output_vars;
-            for (auto& ap : *sub_out_aps_iter) sub_output_vars.push_back(ap.ap_name());
+            for (auto& ap : *sub_out_aps_iter) {
+                sub_output_vars.push_back(ap.ap_name());
+            }
 
-            SyntInstance synt_instance(input_vars, , *sub_formula_iter);
+            SyntInstance synt_instance(input_vars, sub_output_vars, *sub_formula_iter);
             AutomatonSyntMeasure synt_measures(synt_instance);
 
             spot::mealy_like ml;
@@ -75,10 +80,16 @@ int main(int argc, const char* argv[]) {
 
         // Merge sub-formulas
         auto tot_strat = mealy_machines.front().mealy_like;
-        for (size_t i = 1; i < mealy_machines.size(); ++i)
+        for (size_t i = 1; i < mealy_machines.size(); i++)
             tot_strat = spot::mealy_product(tot_strat, mealy_machines[i].mealy_like);
 
         // Print mealy machine
+        for (int i = 0; i < synthesis_measures_list.size(); i++) {
+            cout << "/* Synthesis Measures [" << (i + 1) << "]: " << endl;
+            cout << synthesis_measures_list[i] << endl;
+            cout << "*/" << endl;
+        }
+
         if (!tot_strat) {
             cout << "UNREALIZABLE" << endl;
         } else {
