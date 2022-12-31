@@ -62,12 +62,15 @@ int main(int argc, const char* argv[]) {
                 sub_output_vars.push_back(ap.ap_name());
             }
 
-            SyntInstance synt_instance(input_vars, sub_output_vars, *sub_formula_iter);
-            AutomatonSyntMeasure synt_measures(synt_instance);
+            /* TODO: remove those instances, currently those instances need to be alive
+             * until end of the program*/
+            SyntInstance* synt_instance =
+                new SyntInstance(input_vars, sub_output_vars, *sub_formula_iter);
+            AutomatonSyntMeasure synt_measures(*synt_instance);
 
             spot::mealy_like ml;
             bool should_find_deps = !options.skip_dependencies;
-            bool is_realizable = synthesis_formula(synt_instance, gi, synt_measures,
+            bool is_realizable = synthesis_formula(*synt_instance, gi, synt_measures,
                                                    verbose, should_find_deps, ml);
             if (!is_realizable) {
                 cout << "UNREALIZABLE" << endl;
@@ -79,6 +82,14 @@ int main(int argc, const char* argv[]) {
         }
 
         // Merge sub-formulas
+        assert(std::all_of(
+                   mealy_machines.begin(), mealy_machines.end(),
+                   [](const auto& ml) {
+                       return ml.success ==
+                              spot::mealy_like::realizability_code::REALIZABLE_REGULAR;
+                   }) &&
+               "Cannot handle TGBA as strategy.");
+
         auto tot_strat = mealy_machines.front().mealy_like;
         for (size_t i = 1; i < mealy_machines.size(); i++)
             tot_strat = spot::mealy_product(tot_strat, mealy_machines[i].mealy_like);
