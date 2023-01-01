@@ -15,6 +15,10 @@ This file takes a Buchi automaton and synthesis it
 using namespace std;
 using namespace spot;
 
+void print_decomposed_headers(std::ostream& out,
+                              std::vector<AutomatonSyntMeasure>& synthesis_measures_list,
+                              int sub_formulas);
+
 int main(int argc, const char* argv[]) {
     /**
      * Process the command line arguments
@@ -75,13 +79,17 @@ int main(int argc, const char* argv[]) {
             bool should_find_deps = !options.skip_dependencies;
             bool is_realizable = synthesis_formula(*synt_instance, gi, synt_measures,
                                                    verbose, should_find_deps, ml);
+            synthesis_measures_list.push_back(synt_measures);
+
             if (!is_realizable) {
+                print_decomposed_headers(cout, synthesis_measures_list,
+                                         sub_formulas.size());
+
                 cout << "UNREALIZABLE" << endl;
                 return 0;
             }
 
             mealy_machines.push_back(ml);
-            synthesis_measures_list.push_back(synt_measures);
         }
 
         // Merge sub-formulas
@@ -98,12 +106,7 @@ int main(int argc, const char* argv[]) {
             tot_strat = spot::mealy_product(tot_strat, mealy_machines[i].mealy_like);
 
         // Print mealy machine
-        for (int i = 0; i < synthesis_measures_list.size(); i++) {
-            cout << "/* Synthesis Measures [" << (i + 1) << "]: " << endl;
-            cout << synthesis_measures_list[i] << endl;
-            cout << "*/" << endl;
-        }
-
+        print_decomposed_headers(cout, synthesis_measures_list, sub_formulas.size());
         if (!tot_strat) {
             cout << "UNREALIZABLE" << endl;
         } else {
@@ -131,5 +134,17 @@ int main(int argc, const char* argv[]) {
         } else {
             cout << "UNREALIZABLE" << endl;
         }
+    }
+}
+
+void print_decomposed_headers(std::ostream& out,
+                              std::vector<AutomatonSyntMeasure>& synthesis_measures_list,
+                              int sub_formulas) {
+    out << "/* Sub-Formulas: " << sub_formulas << " */" << endl;
+
+    for (int i = 0; i < synthesis_measures_list.size(); i++) {
+        out << "/* Synthesis Measures [" << (i + 1) << "]: " << endl;
+        out << synthesis_measures_list[i] << endl;
+        out << "*/" << endl;
     }
 }
