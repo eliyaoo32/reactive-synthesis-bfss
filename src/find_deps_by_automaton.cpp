@@ -1,4 +1,4 @@
-#include "automaton_algorithm.h"
+#include "find_deps_by_automaton.h"
 
 #include <boost/range/join.hpp>
 #include <cmath>
@@ -9,8 +9,8 @@
 
 using namespace std;
 
-void AutomatonAlgorithm::find_dependencies(vector<string>& dependent_variables,
-                                           vector<string>& independent_variables) {
+void FindDepsByAutomaton::find_dependencies(vector<string>& dependent_variables,
+                                            vector<string>& independent_variables) {
     // Find PairStates
     m_measures.start_search_pair_states();
     vector<PairState> compatibleStates;
@@ -30,8 +30,8 @@ void AutomatonAlgorithm::find_dependencies(vector<string>& dependent_variables,
         this->extract_dependency_set(dependency_set, candidates, independent_variables);
 
         // Check if candidates variable is dependent
-        if (AutomatonAlgorithm::is_variable_dependent(dependent_var, dependency_set,
-                                                      compatibleStates)) {
+        if (FindDepsByAutomaton::is_variable_dependent(dependent_var, dependency_set,
+                                                       compatibleStates)) {
             dependent_variables.push_back(dependent_var);
             m_measures.end_testing_variable(true, dependency_set);
         } else {
@@ -41,7 +41,7 @@ void AutomatonAlgorithm::find_dependencies(vector<string>& dependent_variables,
     }
 }
 
-void AutomatonAlgorithm::find_dependencies_candidates(
+void FindDepsByAutomaton::find_dependencies_candidates(
     std::vector<std::string>& candidates_dst) {
     candidates_dst.clear();
 
@@ -53,7 +53,7 @@ void AutomatonAlgorithm::find_dependencies_candidates(
     std::copy(candidates.begin(), candidates.end(), std::back_inserter(candidates_dst));
 }
 
-void AutomatonAlgorithm::extract_dependency_set(
+void FindDepsByAutomaton::extract_dependency_set(
     std::vector<std::string>& dependency_set_dst,
     std::vector<std::string>& current_candidates,
     std::vector<std::string>& current_independents) {
@@ -75,9 +75,9 @@ void AutomatonAlgorithm::extract_dependency_set(
     }
 }
 
-bool AutomatonAlgorithm::is_variable_dependent(std::string dependent_var,
-                                               vector<std::string>& dependency_vars,
-                                               vector<PairState>& pairStates) {
+bool FindDepsByAutomaton::is_variable_dependent(std::string dependent_var,
+                                                vector<std::string>& dependency_vars,
+                                                vector<PairState>& pairStates) {
     // Extract variables indexes
     vector<VarIndexer> reset_vars_nums;
     vector<int> dependency_vars_nums;
@@ -102,7 +102,7 @@ bool AutomatonAlgorithm::is_variable_dependent(std::string dependent_var,
             for (auto& t2 : m_automaton->out(pairState.second)) {
                 PairEdges pair_edges = PairEdges(t1, t2);
 
-                if (!AutomatonAlgorithm::is_dependent_by_pair_edges(
+                if (!FindDepsByAutomaton::is_dependent_by_pair_edges(
                         dependent_var_num, dependency_vars_nums, reset_vars_nums,
                         pair_edges)) {
                     return false;
@@ -123,10 +123,10 @@ bool AutomatonAlgorithm::is_variable_dependent(std::string dependent_var,
  * and [∃Y : s1(Y, X=False, Z) & s2(Y, X=True, Z')] is not satisfiable as well.
  * Where Z are rest of variables.
  */
-bool AutomatonAlgorithm::is_dependent_by_pair_edges(int dependent_var,
-                                                    vector<int>& dependency_vars,
-                                                    vector<VarIndexer>& reset_vars,
-                                                    const PairEdges& edges) {
+bool FindDepsByAutomaton::is_dependent_by_pair_edges(int dependent_var,
+                                                     vector<int>& dependency_vars,
+                                                     vector<VarIndexer>& reset_vars,
+                                                     const PairEdges& edges) {
     bdd z1(edges.first.cond);
     bdd z2(edges.second.cond);
 

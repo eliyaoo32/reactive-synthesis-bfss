@@ -4,8 +4,8 @@
 #include <spot/twaalgos/sccfilter.hh>
 #include <vector>
 
-#include "automaton_algorithm.h"
-#include "formula_algorithm.h"
+#include "find_deps_by_automaton.h"
+#include "find_deps_by_formula.h"
 #include "synt_instance.h"
 #include "synt_measure.h"
 #include "utils.h"
@@ -68,7 +68,7 @@ int main(int argc, const char* argv[]) {
             verbose_out << "Searching Dependencies By Formula Definition..." << endl;
 
             vector<string> formula_dependent_variables, formula_independent_variables;
-            FormulaAlgorithm formula_dependencies(synt_instance, *formula_measures);
+            FindDepsByFormula formula_dependencies(synt_instance, *formula_measures);
             formula_dependencies.find_dependencies(formula_dependent_variables,
                                                    formula_independent_variables);
 
@@ -94,16 +94,16 @@ int main(int argc, const char* argv[]) {
 
             // Search for depedent variables
             vector<string> automaton_dependent_variables, automaton_independent_variables;
-            AutomatonAlgorithm automaton_dependencies(synt_instance, *automaton_measures,
+            FindDepsByAutomaton automaton_dependencies(synt_instance, *automaton_measures,
                                                       automaton, false);
             if (options.find_input_dependencies) {
                 verbose_out << "Searching for input dependent variables..." << endl;
                 automaton_dependencies.set_dependent_variable_type(
-                    AutomatonAlgorithm::DependentVariableType::Input);
+                    FindDepsByAutomaton::DependentVariableType::Input);
             } else {
                 verbose_out << "Searching for output dependent variables..." << endl;
                 automaton_dependencies.set_dependent_variable_type(
-                    AutomatonAlgorithm::DependentVariableType::Output);
+                    FindDepsByAutomaton::DependentVariableType::Output);
             }
             automaton_dependencies.find_dependencies(automaton_dependent_variables,
                                                      automaton_independent_variables);

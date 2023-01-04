@@ -112,8 +112,8 @@ bool synthesis_formula(SyntInstance& synt_instance, synthesis_info& gi,
         verbose << "=> Finding Dependent Variables" << endl;
 
         vector<string> dependent_variables, independent_variables;
-        AutomatonAlgorithm automaton_dependencies(synt_instance, synt_measures, automaton,
-                                                  false);
+        FindDepsByAutomaton automaton_dependencies(synt_instance, synt_measures,
+                                                   automaton, false);
         automaton_dependencies.find_dependencies(dependent_variables,
                                                  independent_variables);
         verbose << "=> Found " << dependent_variables.size() << " dependent variables"

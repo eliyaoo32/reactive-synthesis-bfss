@@ -35,7 +35,7 @@ struct VarIndexer {
     int prime_var_index{};
 };
 
-class AutomatonAlgorithm {
+class FindDepsByAutomaton {
    public:
     /**
      * @brief This class is used to determinate the type of dependent variable to search.
@@ -71,9 +71,9 @@ class AutomatonAlgorithm {
                                 std::vector<std::string>& current_independents);
 
    public:
-    explicit AutomatonAlgorithm(SyntInstance& synt_instance,
-                                AutomatonFindDepsMeasure& measure,
-                                spot::twa_graph_ptr aut, bool should_prune)
+    explicit FindDepsByAutomaton(SyntInstance& synt_instance,
+                                 AutomatonFindDepsMeasure& measure,
+                                 spot::twa_graph_ptr aut, bool should_prune)
         : m_synt_instance(synt_instance),
           m_measures(measure),
           m_dependent_variable_type(DependentVariableType::Output) {
@@ -88,7 +88,7 @@ class AutomatonAlgorithm {
         m_bdd_cacher = new BDDVarsCacher(m_automaton);
     }
 
-    ~AutomatonAlgorithm() { delete m_bdd_cacher; }
+    ~FindDepsByAutomaton() { delete m_bdd_cacher; }
 
     void set_dependent_variable_type(DependentVariableType type) {
         m_dependent_variable_type = type;

@@ -7,7 +7,7 @@ This file takes a Buchi automaton and synthesis it
 #include <string>
 #include <vector>
 
-#include "automaton_algorithm.h"
+#include "find_deps_by_automaton.h"
 #include "synt_instance.h"
 #include "synthesis_utils.h"
 #include "utils.h"

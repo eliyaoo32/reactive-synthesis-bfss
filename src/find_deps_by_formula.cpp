@@ -1,4 +1,4 @@
-#include "formula_algorithm.h"
+#include "find_deps_by_formula.h"
 
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/replace.hpp>
@@ -7,7 +7,7 @@
 #include <spot/twaalgos/contains.hh>
 #include <spot/twaalgos/translate.hh>
 
-void FormulaAlgorithm::find_dependencies(
+void FindDepsByFormula::find_dependencies(
     std::vector<std::string>& dependent_variables,
     std::vector<std::string>& independent_variables) {
     std::vector<std::string> candidates(m_synt_instance.get_output_vars());
@@ -37,8 +37,8 @@ void FormulaAlgorithm::find_dependencies(
     }
 }
 
-bool FormulaAlgorithm::is_variable_dependent(string& dependent_var,
-                                             vector<string>& dependency_vars) {
+bool FindDepsByFormula::is_variable_dependent(string& dependent_var,
+                                              vector<string>& dependency_vars) {
     spot::formula* dependency_formula =
         get_dependency_formula(dependent_var, dependency_vars);
 
@@ -50,8 +50,8 @@ bool FormulaAlgorithm::is_variable_dependent(string& dependent_var,
     return is_empty;
 }
 
-spot::formula* FormulaAlgorithm::get_dependency_formula(string& dependent_var,
-                                                        vector<string>& dependency_vars) {
+spot::formula* FindDepsByFormula::get_dependency_formula(
+    string& dependent_var, vector<string>& dependency_vars) {
     if (dependent_var.empty() || dependency_vars.empty()) {
         throw std::invalid_argument(
             "Dependent and dependency are required to have at least 1 item to "
@@ -74,7 +74,7 @@ spot::formula* FormulaAlgorithm::get_dependency_formula(string& dependent_var,
     return dependency_formula;
 }
 
-void FormulaAlgorithm::build_prime_synt_instance() {
+void FindDepsByFormula::build_prime_synt_instance() {
     const vector<string>& input_vars = m_synt_instance.get_input_vars();
     const vector<string>& output_vars = m_synt_instance.get_output_vars();
 
