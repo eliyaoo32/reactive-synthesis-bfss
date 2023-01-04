@@ -15,7 +15,7 @@
 #include <spot/twaalgos/translate.hh>
 #include <vector>
 
-#include "automaton_algorithm.h"
+#include "find_deps_by_automaton.h"
 #include "synt_instance.h"
 #include "utils.h"
 
