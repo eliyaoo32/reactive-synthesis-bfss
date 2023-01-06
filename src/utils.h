@@ -19,28 +19,35 @@ enum Algorithm { UNKNOWN = 0, FORMULA = 1, AUTOMATON = 2 };
 Algorithm string_to_algorithm(const std::string &str);
 std::string algorithm_to_string(const Algorithm &algo);
 
-struct CLIOptions {
+struct BaseCLIOptions {
     std::string formula;
     std::string inputs;
     std::string outputs;
     bool verbose;
+};
 
-    // Find Dependencies tool
-    Algorithm algorithm;
-    bool find_input_dependencies;
-
-    // Synthesis tool
+struct SynthesisCLIOptions : public BaseCLIOptions {
     bool skip_dependencies;
     bool decompose_formula;
 };
 
-bool parse_cli(int argc, const char *argv[], CLIOptions &options);
+struct FindDependenciesCLIOptions : public BaseCLIOptions {
+    Algorithm algorithm;
+    bool find_input_dependencies;
+};
+
+bool parse_find_dependencies_cli(int argc, const char *argv[],
+                                 FindDependenciesCLIOptions &options);
+
+bool parse_synthesis_cli(int argc, const char *argv[], SynthesisCLIOptions &options);
 
 void extract_variables(const std::string &str, std::vector<std::string> &dst);
 
 std::ostream &operator<<(std::ostream &out, const std::vector<std::string> &vec);
 
-std::ostream &operator<<(std::ostream &out, const CLIOptions &options);
+std::ostream &operator<<(std::ostream &out, const SynthesisCLIOptions &options);
+
+std::ostream &operator<<(std::ostream &out, const FindDependenciesCLIOptions &options);
 
 using Duration = long;
 

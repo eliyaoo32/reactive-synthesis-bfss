@@ -23,8 +23,8 @@ int main(int argc, const char* argv[]) {
     /**
      * Process the command line arguments
      */
-    CLIOptions options;
-    int parsed_cli_status = parse_cli(argc, argv, options);
+    SynthesisCLIOptions options;
+    int parsed_cli_status = parse_synthesis_cli(argc, argv, options);
     if (!parsed_cli_status) {
         return EXIT_FAILURE;
     }
