@@ -7,21 +7,21 @@
 namespace Options = boost::program_options;
 using namespace std;
 
-bool parse_cli(int argc, const char *argv[], CLIOptions &options) {
-    // TODO: seperate options for synthesis and find dependencies
-    Options::options_description desc("Tool to find dependencies in LTL formula");
+void parse_cli_common(BaseCLIOptions &options, Options::options_description &desc) {
     desc.add_options()("formula,f", Options::value<string>(&options.formula)->required(),
                        "LTL formula")(
         "output,o", Options::value<string>(&options.outputs)->required(),
         "Output variables")("input,i",
                             Options::value<string>(&options.inputs)->required(),
                             "Input variables")(
-        "verbose,v", Options::bool_switch(&options.verbose), "Verbose messages")(
-        "algo,algorithm", Options::value<string>(),
-        "Which algorithm to use: formula, automaton")(
-        "find-input-only",
-        Options::bool_switch(&options.find_input_dependencies)->default_value(false),
-        "Search for input dependent variables instead of output dependent variables")(
+        "verbose,v", Options::bool_switch(&options.verbose), "Verbose messages");
+}
+
+bool parse_synthesis_cli(int argc, const char *argv[], SynthesisCLIOptions &options) {
+    Options::options_description desc(
+        "Tool to synthesis LTL specfication using dependencies concept");
+    parse_cli_common(options, desc);
+    desc.add_options()(
         "skip-deps",
         Options::bool_switch(&options.skip_dependencies)->default_value(false),
         "Should skip finding dependent variables and synthesis them separately")(
@@ -29,6 +29,36 @@ bool parse_cli(int argc, const char *argv[], CLIOptions &options) {
         Options::bool_switch(&options.decompose_formula)->default_value(false),
         "Should decompose the formula into sub formulas and synthesis each formula "
         "separately");
+
+    try {
+        Options::command_line_parser parser{argc, argv};
+        parser.options(desc).allow_unregistered().style(
+            Options::command_line_style::default_style |
+            Options::command_line_style::allow_slash_for_short);
+        Options::parsed_options parsed_options = parser.run();
+
+        Options::variables_map vm;
+        Options::store(parsed_options, vm);
+        Options::notify(vm);
+
+        return true;
+    } catch (const Options::error &ex) {
+        cerr << ex.what() << '\n';
+        cout << desc << endl;
+        return false;
+    }
+}
+
+bool parse_find_dependencies_cli(int argc, const char *argv[],
+                                 FindDependenciesCLIOptions &options) {
+    Options::options_description desc(
+        "Tool to synthesis LTL specfication using dependencies concept");
+    parse_cli_common(options, desc);
+    desc.add_options()("algo,algorithm", Options::value<string>(),
+                       "Which algorithm to use: formula, automaton")(
+        "find-input-only",
+        Options::bool_switch(&options.find_input_dependencies)->default_value(false),
+        "Search for input dependent variables instead of output dependent variables");
 
     try {
         Options::command_line_parser parser{argc, argv};
@@ -94,14 +124,28 @@ void extract_variables(const std::string &str, std::vector<std::string> &dst) {
     boost::split(dst, str, boost::is_any_of(","));
 }
 
-std::ostream &operator<<(std::ostream &out, const CLIOptions &options) {
+std::ostream &operator<<(std::ostream &out, const FindDependenciesCLIOptions &options) {
+    out << " - Formula: " << options.formula << endl;
+    out << " - Inputs: " << options.inputs << endl;
+    out << " - Outputs: " << options.outputs << endl;
+    out << " - Verbose: " << options.verbose << endl;
+
+    out << " - Algorithm: " << algorithm_to_string(options.algorithm) << endl;
+    out << " - Type of dependent variables: "
+        << (options.find_input_dependencies ? "input" : "output") << endl;
+
+    return out;
+}
+
+std::ostream &operator<<(std::ostream &out, const SynthesisCLIOptions &options) {
     out << boolalpha;
     out << " - Formula: " << options.formula << endl;
     out << " - Inputs: " << options.inputs << endl;
     out << " - Outputs: " << options.outputs << endl;
     out << " - Verbose: " << options.verbose << endl;
-    out << " - Algorithm: " << algorithm_to_string(options.algorithm) << endl;
-    out << " - Skip dependencies: " << options.skip_dependencies << endl;
+
+    out << " - Skip dependencies synthesis: " << options.skip_dependencies << endl;
+    out << " - Decompose to Sub-Formulas: " << options.decompose_formula << endl;
 
     return out;
 }

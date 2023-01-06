@@ -31,9 +31,9 @@ void on_sighup(int args) {
 }
 
 int main(int argc, const char* argv[]) {
-    CLIOptions options;
+    FindDependenciesCLIOptions options;
 
-    int parsed_cli_status = parse_cli(argc, argv, options);
+    int parsed_cli_status = parse_find_dependencies_cli(argc, argv, options);
     if (!parsed_cli_status) {
         return EXIT_FAILURE;
     }
@@ -77,8 +77,7 @@ int main(int argc, const char* argv[]) {
             verbose_out << "Formula Dependency Variables: "
                         << formula_independent_variables << endl;
         } else if (options.algorithm == Algorithm::AUTOMATON) {
-            auto* automaton_measures =
-                new AutomatonFindDepsMeasure(synt_instance, options.skip_dependencies);
+            auto* automaton_measures = new AutomatonFindDepsMeasure(synt_instance, false);
             synt_measures = automaton_measures;
 
             verbose_out << "Searching Dependencies By Automaton Definition..." << endl;
@@ -95,7 +94,7 @@ int main(int argc, const char* argv[]) {
             // Search for depedent variables
             vector<string> automaton_dependent_variables, automaton_independent_variables;
             FindDepsByAutomaton automaton_dependencies(synt_instance, *automaton_measures,
-                                                      automaton, false);
+                                                       automaton, false);
             if (options.find_input_dependencies) {
                 verbose_out << "Searching for input dependent variables..." << endl;
                 automaton_dependencies.set_dependent_variable_type(
