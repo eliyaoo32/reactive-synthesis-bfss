@@ -14,7 +14,8 @@ void SyntInstance::build_all_vars() {
     }
 }
 
-SyntInstance::SyntInstance(const std::string& input_str, const std::string& output_str,
+SyntInstance::SyntInstance(const std::string& input_str,
+                           const std::string& output_str,
                            const std::string& formula_str)
     : m_formula(formula_str) {
     extract_variables(input_str, m_input_vars);
@@ -26,18 +27,14 @@ SyntInstance::SyntInstance(const std::string& input_str, const std::string& outp
 
 SyntInstance::SyntInstance(std::vector<std::string>& inputs,
                            std::vector<std::string>& outputs, std::string& formula)
-    : m_input_vars(std::move(inputs)),
-      m_output_vars(std::move(outputs)),
-      m_formula(formula) {
+    : m_input_vars(inputs), m_output_vars(outputs), m_formula(formula) {
     build_all_vars();
     construct_formula();
 };
 
 SyntInstance::SyntInstance(std::vector<std::string>& inputs,
                            std::vector<std::string>& outputs, spot::formula& formula)
-    : m_input_vars(std::move(inputs)),
-      m_output_vars(std::move(outputs)),
-      m_formula_parsed(formula) {
+    : m_input_vars(inputs), m_output_vars(outputs), m_formula_parsed(formula) {
     build_all_vars();
 
     // Convert spot formula to string
