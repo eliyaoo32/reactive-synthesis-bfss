@@ -79,7 +79,6 @@ int main(int argc, const char* argv[]) {
     vector<shared_ptr<AutomatonSyntMeasure>> synt_measures;
     vector<spot::mealy_like> mealy_machines(synt_instances.size());
 
-    // for (auto& synt_instance : synt_instances) {
     for (size_t i = 0; i < synt_instances.size(); i++) {
         auto& synt_instance = synt_instances[i];
         auto& mealy = mealy_machines[i];
