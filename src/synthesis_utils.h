@@ -24,7 +24,8 @@ spot::twa_graph_ptr ntgba2dpa(const spot::twa_graph_ptr& aut, bool force_sbacc);
 void remove_ap_from_automaton(const spot::twa_graph_ptr& automaton,
                               vector<string>& variables);
 
-spot::twa_graph_ptr get_dpa_from_nba(spot::twa_graph_ptr nba, spot::synthesis_info& gi,
+spot::twa_graph_ptr get_dpa_from_nba(spot::twa_graph_ptr nba,
+                                     spot::synthesis_info& gi,
                                      AutomatonSyntMeasure& synt_measures,
                                      SyntInstance& synt_instance);
 
@@ -34,8 +35,9 @@ spot::twa_graph_ptr get_nba_for_synthesis(SyntInstance& synt_instance,
                                           std::ostream& verbose);
 
 // Return if realizable
-bool synthesis_formula(SyntInstance& synt_instance, spot::synthesis_info& gi,
-                       AutomatonSyntMeasure& synt_measures, std::ostream& verbose,
-                       bool find_deps, spot::mealy_like& ml);
+bool synthesis_to_mealy(SyntInstance& synt_instance, spot::synthesis_info& gi,
+                        AutomatonSyntMeasure& synt_measures, std::ostream& verbose,
+                        bool find_deps, bool should_split_mealy,
+                        spot::mealy_like& ml);
 
 #endif

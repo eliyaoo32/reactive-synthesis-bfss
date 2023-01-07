@@ -19,7 +19,8 @@ twa_graph_ptr ntgba2dpa(const twa_graph_ptr& aut, bool force_sbacc) {
     return dpa;
 }
 
-void remove_ap_from_automaton(const twa_graph_ptr& automaton, vector<string>& variables) {
+void remove_ap_from_automaton(const twa_graph_ptr& automaton,
+                              vector<string>& variables) {
     bdd vars = bddtrue;
     for (string& ap_name : variables) {
         vars &= bdd_ithvar(automaton->register_ap(ap_name));
@@ -31,6 +32,7 @@ void remove_ap_from_automaton(const twa_graph_ptr& automaton, vector<string>& va
             edge.cond = bdd_exist(edge.cond, vars);
         }
     }
+
     // Unregister dependent variables
     for (string& var_to_remove : variables) {
         int ap = automaton->register_ap(var_to_remove);  // Get AP number
@@ -48,7 +50,8 @@ spot::twa_graph_ptr get_dpa_from_nba(spot::twa_graph_ptr nba, synthesis_info& gi
 
     synt_measures.start_split_2step();
     auto is_out = [&output_vars](const std::string& ao) -> bool {
-        return std::find(output_vars.begin(), output_vars.end(), ao) != output_vars.end();
+        return std::find(output_vars.begin(), output_vars.end(), ao) !=
+               output_vars.end();
     };
     bdd outs = bddtrue;
     for (auto&& aap : nba->ap()) {
@@ -71,7 +74,8 @@ spot::twa_graph_ptr get_dpa_from_nba(spot::twa_graph_ptr nba, synthesis_info& gi
     return dpa;
 }
 
-spot::twa_graph_ptr get_nba_for_synthesis(SyntInstance& synt_instance, synthesis_info& gi,
+spot::twa_graph_ptr get_nba_for_synthesis(SyntInstance& synt_instance,
+                                          synthesis_info& gi,
                                           AutomatonSyntMeasure& synt_measures,
                                           std::ostream& verbose) {
     option_map& extra_options = gi.opt;
@@ -98,9 +102,10 @@ spot::twa_graph_ptr get_nba_for_synthesis(SyntInstance& synt_instance, synthesis
 }
 
 // Return if realizable
-bool synthesis_formula(SyntInstance& synt_instance, synthesis_info& gi,
-                       AutomatonSyntMeasure& synt_measures, std::ostream& verbose,
-                       bool find_deps, spot::mealy_like& ml) {
+bool synthesis_to_mealy(SyntInstance& synt_instance, synthesis_info& gi,
+                        AutomatonSyntMeasure& synt_measures, std::ostream& verbose,
+                        bool find_deps, bool should_split_mealy,
+                        spot::mealy_like& ml) {
     // =================== Step 1: Construct NBA
     vector<string> output_vars(synt_instance.get_output_vars());
     spot::twa_graph_ptr automaton =
@@ -116,8 +121,8 @@ bool synthesis_formula(SyntInstance& synt_instance, synthesis_info& gi,
                                                    automaton, false);
         automaton_dependencies.find_dependencies(dependent_variables,
                                                  independent_variables);
-        verbose << "=> Found " << dependent_variables.size() << " dependent variables"
-                << endl;
+        verbose << "=> Found " << dependent_variables.size()
+                << " dependent variables" << endl;
 
         // === Step 2.2: Remove dependent variables from the NBA
         verbose << "=> Remove Dependent Variables" << endl;
@@ -145,8 +150,7 @@ bool synthesis_formula(SyntInstance& synt_instance, synthesis_info& gi,
     synt_measures.start_dpa_to_mealy();
     ml.success = spot::mealy_like::realizability_code::REALIZABLE_REGULAR;
     ml.mealy_like = spot::solved_game_to_mealy(arena, gi);
-    bool should_split = false;
-    simplify_mealy_here(ml.mealy_like, gi.minimize_lvl, should_split);
+    simplify_mealy_here(ml.mealy_like, gi, should_split_mealy);
     synt_measures.end_dpa_to_mealy();
 
     synt_measures.completed();
