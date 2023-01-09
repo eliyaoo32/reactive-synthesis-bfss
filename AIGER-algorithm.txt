@@ -6,7 +6,7 @@ function Synthesis(ϕ, I, O):
     3. Aϕ' = RemoveAP(Aϕ, D)
     
     4. AigerOfIndependent = SpotSynthesis(Aϕ')
-    5. AigerOfDependents = SynthesisDependentAiger(ϕ,I,O - D, D)
+    5. AigerOfDependents = SynthesisDependentAiger(Aϕ,I,O - D, D)
 
     # Merging both Aiger to final synthesis tool
     6. For indepdent_out in O - D:
@@ -17,7 +17,7 @@ function Synthesis(ϕ, I, O):
 
 
 
-function SynthesisDependentAiger(ϕ,I,O,D):
+function SynthesisDependentAiger(Aϕ,I,O,D):
     1. Aϕ <- DeterminizeNBA(ϕ)
     2. Aϕ_AIGER <- DBA_to_AIGER(Aϕ, latches=States(Aϕ), Input=I ∪ O, Output=D)
     3. all_Aϕ_AIGER = []
