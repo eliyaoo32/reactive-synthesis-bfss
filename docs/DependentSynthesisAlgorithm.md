@@ -3,7 +3,7 @@ In order to synthesis a strategy for dependent variable we apply the following a
 ## Aiger for Next States Subset
 **Input:**
 - LTL specification $\varphi(I, O \setminus D, D)$, where:
-    - $I$=Input vars
+    - $I$ = Input vars
     - $O$ = Output vars
     - $D$ = Dependent Output Vars.
 - $A_\varphi'$ - NBA with projected dependent variables.
