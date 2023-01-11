@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+#include "dependents_synthesiser.h"
 #include "find_deps_by_automaton.h"
 #include "synt_instance.h"
 #include "synthesis_utils.h"
@@ -51,12 +52,24 @@ int main(int argc, const char* argv[]) {
 
     // Step 2: Find & Remove dependent variables
     vector<string> dependent_variables, independent_variables;
+    bool found_depedencies = false;
     if (options.skip_dependencies) {
         verbose << "=> Skip finding dependent variables..." << endl;
     } else {
         find_and_remove_dependents(nba, synt_instance, synt_measure,
                                    dependent_variables, independent_variables,
                                    verbose);
+        found_depedencies = dependent_variables.size() > 0;
+    }
+
+    // Step 2.1: Store NBA without dependencies, will be used to synthesis
+    // dependecies strategy
+    twa_graph_ptr nba_without_deps;
+    if (found_depedencies) {
+        const_twa_graph_ptr nba_to_clone = nba;
+        twa_graph* nba_without_deps_ =
+            new twa_graph(*nba_to_clone);  // TODO: make sure it clones correctly}
+        nba_without_deps = shared_ptr<twa_graph>(nba_without_deps_);
     }
 
     // Step 3: Synthesis the NBA
@@ -71,8 +84,27 @@ int main(int argc, const char* argv[]) {
     }
 
     // Step 4: Convert the Mealy machine to AIGER
-    spot::aig_ptr saig =
+    spot::aig_ptr independent_aig =
         mealy_machines_to_aig({mealy}, AIGER_MODE, synt_instance.get_input_vars(),
                               {independent_variables});
-    spot::print_aiger(std::cout, saig) << '\n';
+
+    // Output results
+    cout << "Synthesis Measures: " << endl;
+    cout << synt_measure << endl;
+
+    cout << "=========================" << endl;
+
+    cout << "Independents Aiger: " << endl;
+    spot::print_aiger(std::cout, independent_aig) << '\n';
+
+    // Step 5: Synthesis Dependent vars
+    if (found_depedencies) {
+        vector<string> input_vars(synt_instance.get_input_vars());
+        DependentsSynthesiser dependents_synt(nba_without_deps, input_vars,
+                                              independent_variables);
+        spot::aig_ptr next_states_aig = dependents_synt.synthesis_next_states_aig();
+
+        cout << "Next States Aiger: " << endl;
+        spot::print_aiger(std::cout, next_states_aig) << '\n';
+    }
 }
